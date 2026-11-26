@@ -1,0 +1,10 @@
+# Nix
+.direnv/
+result
+
+# Claude Code (personal)
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Secrets
+.env

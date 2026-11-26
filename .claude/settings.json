@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "awalvie-agents": {
+      "source": { "source": "github", "repo": "awalvie/agents" }
+    }
+  },
+  "enabledPlugins": {
+    "agents@awalvie-agents": true
+  }
+}
