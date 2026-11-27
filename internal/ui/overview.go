@@ -7,8 +7,6 @@ const (
 	bodyShares       = 5
 	minNodesPane     = 5
 	paneChrome       = 3
-	jobsBlankRows    = 1
-	minJobsRows      = 3
 )
 
 func (m Model) scopeJobs() Model {
@@ -26,10 +24,6 @@ func nodesPaneHeight(rows, body int) int {
 	return min(max(rows, 1)+paneChrome, max(body*nodesShareOfBody/bodyShares, minNodesPane))
 }
 
-func jobsPaneHeight(rows, space int) int {
-	return min(max(rows+jobsBlankRows, minJobsRows)+paneChrome, space)
-}
-
 func (m Model) overview(width, height int) ([]string, error) {
 	nodes, jobs := m.table(m.nodePane), m.table(m.jobPane)
 	nodesHeight := nodesPaneHeight(len(nodes.rows), height)
@@ -40,7 +34,7 @@ func (m Model) overview(width, height int) ([]string, error) {
 	for range gap {
 		lines = append(lines, "")
 	}
-	lines = append(lines, m.paneOf(m.jobPane, jobs, m.focus == jobsView).render(width, jobsPaneHeight(len(jobs.rows), height-nodesHeight-gap))...)
+	lines = append(lines, m.paneOf(m.jobPane, jobs, m.focus == jobsView).render(width, height-nodesHeight-gap)...)
 	if nodes.err != nil {
 		return lines, nodes.err
 	}
