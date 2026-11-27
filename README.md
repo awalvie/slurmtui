@@ -4,7 +4,7 @@
 
 A terminal UI for Slurm in the style of k9s. It runs on your laptop and talks only to slurmrestd (API v0.0.45, Slurm 26.05), so you need no Slurm, munge or `slurm.conf` on your machine.
 
-<!-- screenshot -->
+![Overview: Nodes and Jobs panes](assets/screenshots/overview.png)
 
 ## Features
 
@@ -12,38 +12,70 @@ A terminal UI for Slurm in the style of k9s. It runs on your laptop and talks on
 - Problem nodes first: down, then drained and draining, with reason, user and age.
 - Drain, edit reason, resume a node. Cancel a job. Each action has a confirm dialog.
 - Describe and raw JSON for a node or a job.
-- Regex filter, sort, node-to-jobs scope, refresh at a fixed interval.
+- Regex filter, sort, node-to-jobs and job-to-nodes scope, refresh at a fixed interval.
 - Provided token (`scontrol token`) or Signed token (from the Cluster key).
 - Read-only mode.
 - Setup form on first start.
 
 ## Install
 
+**Nix**
+
 ```sh
-nix run github:awalvie/slurmtui      # run once
-nix build github:awalvie/slurmtui    # binary in ./result/bin/slurmtui
-go install github.com/awalvie/slurmtui/cmd/slurmtui@latest   # Go 1.26.7 or later
+nix run github:awalvie/slurmtui
+nix profile install github:awalvie/slurmtui
+```
+
+**Go** (1.26.7 or later)
+
+```sh
+go install github.com/awalvie/slurmtui/cmd/slurmtui@latest
+```
+
+**From source**
+
+```sh
+git clone https://github.com/awalvie/slurmtui && cd slurmtui
+```
+
+Then build with Nix (binary in `./result/bin/slurmtui`):
+
+```sh
+nix build
+```
+
+Or with Go:
+
+```sh
+go build ./cmd/slurmtui
 ```
 
 ## Quick start
 
-Open a tunnel to slurmrestd, get a token, and start in read-only mode:
+**Setup form.** Run `slurmtui` with no flags. A form asks for the URL, the user and the token source, tests the connection (`GET /slurm/v0.0.45/ping`) and saves a Context. A pasted token is used for that session only and is never saved.
+
+<img src="assets/screenshots/setup.png" alt="Setup form" width="480">
+
+**Token from the cluster.** `scontrol token` prints `SLURM_JWT=<token>`. Get one from a login host:
 
 ```sh
-ssh -fN -L 6820:slurmrestd.example:6820 login.example
-export SLURM_JWT=$(ssh login.example scontrol token lifespan=3600 | sed 's/^SLURM_JWT=//')
-slurmtui --url http://127.0.0.1:6820 --readonly
+export SLURM_JWT=$(ssh <login-host> scontrol token lifespan=28800 | cut -d= -f2)
+slurmtui --url https://slurm.example:6820 --readonly
 ```
 
-`--user` is optional: slurmtui reads the user from the token.
+slurmtui reads the user from the token, so `--user` is optional.
 
-If you start slurmtui with no flags and no config file, a setup form opens. It tests the connection with `GET /slurm/v0.0.45/ping`, then adds a Context to the config file. A pasted token is used for that session only and is never saved.
+**No cluster.** Start a local Slurm in Docker:
+
+```sh
+just cluster-up && just cluster-wait && just cluster-seed && just cluster-run
+```
 
 The terminal must be at least 80x24.
 
 ## Read-only mode
 
-Start with `--readonly` on a production cluster. In read-only mode, slurmtui sends only GET requests, and `D`, `U` and `ctrl-d` do nothing.
+Use `--readonly` on a production cluster. slurmtui then sends only GET requests, and `D`, `U` and `ctrl-d` do nothing.
 
 | Source | Example |
 |---|---|
@@ -63,6 +95,7 @@ The flag wins, then the Context, then the global setting. The default is off. `-
 | `-r`, `--refresh <s>` | Refresh interval in whole seconds, at least 2. Default 5. |
 | `--readonly` | Read-only mode. |
 | `--write` | Allow actions, also for a read-only Context. |
+| `-h`, `--help` | Print the flags. |
 
 ## Config
 
@@ -127,10 +160,14 @@ Key file rules:
 - `https` is verified against the system roots plus `caFile`. There is no skip-verify.
 - `http` is allowed only to a loopback host, for an SSH tunnel.
 - Redirects are refused. The token headers do not go to the redirect target.
+- slurmrestd only reachable on the cluster? `ssh -L 6820:localhost:6820 host`, then `--url http://127.0.0.1:6820`.
+- Each refresh sends `GET` for nodes, jobs and partitions. Partitions give the time limit of a job with no limit of its own.
 
 ## Keys
 
-`?` shows the keys in the UI. The header shows the keys of the focused pane.
+`?` opens help in a pop-up. The header shows the keys of the focused pane.
+
+<img src="assets/screenshots/help.png" alt="Help pop-up" width="640">
 
 **Both panes**
 
@@ -146,6 +183,7 @@ Key file rules:
 | `shift-n` / `shift-s` | Sort by name / state. Again to reverse. |
 | `ctrl-r` | Refresh now |
 | `?` | Help |
+| `q` | Quit |
 
 **Nodes pane**
 
@@ -161,14 +199,16 @@ Key file rules:
 |---|---|
 | `enter` | Describe |
 | `ctrl-d` | Cancel. An array record cancels all tasks. A het job component cancels all components. |
-| `o` | Nodes of the job (full-screen `:jobs` only) |
+| `o` | Nodes of the job, on the full screen |
 
-**Describe, JSON**
+**Describe, JSON, help**
 
 | Key | Action |
 |---|---|
 | `j`/`k`, `down`/`up`, `g`/`G` | Scroll |
-| `esc` | Back |
+| `esc`, `q` | Back. `?` also closes help. |
+
+<img src="assets/screenshots/describe.png" alt="Describe of a node" width="640">
 
 **Dialogs**
 
@@ -178,6 +218,8 @@ Key file rules:
 | `left` / `right` | Move between buttons |
 | `enter` | Push the focused button |
 | `esc` | Keep (no change) |
+
+<img src="assets/screenshots/drain.png" alt="Drain dialog" width="640">
 
 **Setup form**
 
@@ -194,7 +236,9 @@ Key file rules:
 | `:nodes`, `:no` | Nodes on the full screen |
 | `:jobs`, `:j` | Jobs on the full screen |
 | `:overview`, `:ov` | Back to the Overview |
-| `:q`, `ctrl-c` | Quit |
+| `:q`, `:quit`, `ctrl-c` | Quit |
+
+`q` is a letter while you type in the filter, the `:` prompt, a dialog or the setup form.
 
 ## Security
 
@@ -211,8 +255,9 @@ Key file rules:
 | `just check` | gofmt, vet, lint, tests. CI and the pre-commit hook run the same script. |
 | `just hooks` | Enable the pre-commit hook |
 | `just test` | Tests, without the integration tests |
-| `just run --url <url> --user <user>` | Run from source, with `SLURM_JWT` set |
+| `just run --url <url>` | Run from source, with `SLURM_JWT` set |
 | `just build` | `nix build` |
+| `just screenshots` | Make `assets/screenshots/` again with VHS from `dev/screenshots/`. Needs the Docker cluster. |
 | `just openapi-spec` | Make `testdata/openapi-slurmctld-v0.0.45.json` again from the nixpkgs slurmrestd |
 
 After a change to `go.mod`, set `vendorHash` in `flake.nix` to `pkgs.lib.fakeHash`, run `nix build`, and use the hash it reports. A stale hash builds from stale modules.
