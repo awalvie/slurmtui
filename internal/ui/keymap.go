@@ -175,7 +175,7 @@ func helpGroupsFromBindings() []helpGroup {
 
 func (m Model) drainHint(frame) string {
 	n, ok := m.selectedNode()
-	if ok && n.State.Has("DRAIN") {
+	if ok && n.State.InDrain() {
 		return "edit reason"
 	}
 	return "drain"
@@ -183,7 +183,7 @@ func (m Model) drainHint(frame) string {
 
 func (m Model) resumeHint(frame) string {
 	n, ok := m.selectedNode()
-	if ok && (n.State.Has("DRAIN") || classOfNode(n.State) == nodeDown) {
+	if ok && (n.State.Resumable()) {
 		return "resume"
 	}
 	return ""

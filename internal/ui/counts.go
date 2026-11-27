@@ -10,10 +10,10 @@ import (
 func nodeProblemFacts(nodes []slurm.Node) []string {
 	var draining, drained, down int
 	for _, n := range nodes {
-		switch classOfNode(n.State) {
-		case nodeDown:
+		switch n.State.Class() {
+		case slurm.NodeDown:
 			down++
-		case nodeDrain:
+		case slurm.NodeDrain:
 			if n.State.Draining() {
 				draining++
 			} else {
@@ -22,15 +22,15 @@ func nodeProblemFacts(nodes []slurm.Node) []string {
 		}
 	}
 	var facts []string
-	add := func(count int, class nodeClass, label string) {
+	add := func(count int, class slurm.NodeClass, label string) {
 		if count > 0 {
 			c := nodeClasses[class]
 			facts = append(facts, c.style.Bold(true).Render(fmt.Sprintf("%s %d %s", c.glyph, count, label)))
 		}
 	}
-	add(draining, nodeDrain, "draining")
-	add(drained, nodeDrain, "drained")
-	add(down, nodeDown, "down")
+	add(draining, slurm.NodeDrain, "draining")
+	add(drained, slurm.NodeDrain, "drained")
+	add(down, slurm.NodeDown, "down")
 	return facts
 }
 

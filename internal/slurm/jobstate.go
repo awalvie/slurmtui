@@ -48,13 +48,50 @@ func ParseJobState(values []string) (JobState, error) {
 	return s, nil
 }
 
-func (s JobState) Has(flag string) bool {
+func (s JobState) has(flag string) bool {
 	return slices.Contains(s.Flags, flag)
+}
+
+type JobClass int
+
+const (
+	JobPending JobClass = iota
+	JobRunning
+	JobCompleting
+	JobCompleted
+	JobFailed
+	JobStopped
+)
+
+var jobBasesThatFail = []string{"FAILED", "NODE_FAIL", "BOOT_FAIL", "OUT_OF_MEMORY"}
+
+func (s JobState) Class() JobClass {
+	switch {
+	case s.has("COMPLETING") || s.has("STAGE_OUT"):
+		return JobCompleting
+	case s.Pending():
+		return JobPending
+	case s.Base == "RUNNING" || s.Base == "SUSPENDED":
+		return JobRunning
+	case s.Base == "COMPLETED":
+		return JobCompleted
+	case slices.Contains(jobBasesThatFail, s.Base):
+		return JobFailed
+	}
+	return JobStopped
+}
+
+func (s JobState) Pending() bool {
+	return s.Base == "PENDING"
+}
+
+func (s JobState) CanRunOut() bool {
+	return !s.Pending() && !s.Ended()
 }
 
 func (s JobState) Label() string {
 	for _, f := range jobFlagsByPriority {
-		if s.Has(f) {
+		if s.has(f) {
 			return f
 		}
 	}
@@ -62,14 +99,14 @@ func (s JobState) Label() string {
 }
 
 func (s JobState) ShowsReason() bool {
-	if s.Has("COMPLETING") {
+	if s.has("COMPLETING") {
 		return false
 	}
-	return s.Has("STAGE_OUT") || slices.Contains(jobBasesThatShowReason, s.Base)
+	return s.has("STAGE_OUT") || slices.Contains(jobBasesThatShowReason, s.Base)
 }
 
 func (s JobState) Ended() bool {
-	return !slices.Contains(jobBasesStillActive, s.Base) && !s.Has("COMPLETING") && !s.Has("STAGE_OUT")
+	return !slices.Contains(jobBasesStillActive, s.Base) && !s.has("COMPLETING") && !s.has("STAGE_OUT")
 }
 
 func WidestJobLabel() int {

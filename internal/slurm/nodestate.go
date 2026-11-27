@@ -64,8 +64,52 @@ func ParseNodeState(values []string) (NodeState, error) {
 	return s, nil
 }
 
-func (s NodeState) Has(flag string) bool {
+func (s NodeState) has(flag string) bool {
 	return s.Flags[flag]
+}
+
+type NodeClass int
+
+const (
+	NodeDown NodeClass = iota
+	NodeDrain
+	NodeMixed
+	NodeAllocated
+	NodeIdle
+	NodeOther
+)
+
+var flagsThatMakeIdleOther = []string{
+	"POWERED_DOWN", "POWERING_UP", "POWERING_DOWN", "MAINTENANCE",
+	"REBOOT_REQUESTED", "REBOOT_ISSUED", "RESERVED",
+}
+
+func (s NodeState) Class() NodeClass {
+	switch {
+	case s.Down():
+		return NodeDown
+	case s.InDrain():
+		return NodeDrain
+	case s.Base == "MIXED":
+		return NodeMixed
+	case s.Base == "ALLOCATED" || s.has("COMPLETING"):
+		return NodeAllocated
+	case s.Base == "IDLE" && !slices.ContainsFunc(flagsThatMakeIdleOther, s.has):
+		return NodeIdle
+	}
+	return NodeOther
+}
+
+func (s NodeState) InDrain() bool {
+	return s.has("DRAIN")
+}
+
+func (s NodeState) Resumable() bool {
+	return s.InDrain() || s.Class() == NodeDown
+}
+
+func (s NodeState) RebootRequested() bool {
+	return s.has("REBOOT_REQUESTED")
 }
 
 func (s NodeState) only(flag string) bool {
@@ -74,32 +118,32 @@ func (s NodeState) only(flag string) bool {
 
 func (s NodeState) suffix() string {
 	switch {
-	case s.Has("MAINTENANCE"):
+	case s.has("MAINTENANCE"):
 		return "$"
-	case s.Has("REBOOT_ISSUED"):
+	case s.has("REBOOT_ISSUED"):
 		return "^"
-	case s.Has("REBOOT_REQUESTED"):
+	case s.has("REBOOT_REQUESTED"):
 		return "@"
-	case s.Has("POWERING_UP"):
+	case s.has("POWERING_UP"):
 		return "#"
-	case s.Has("POWERING_DOWN"):
+	case s.has("POWERING_DOWN"):
 		return "%"
-	case s.Has("POWERED_DOWN"):
+	case s.has("POWERED_DOWN"):
 		return "~"
-	case s.Has("POWER_DOWN"):
+	case s.has("POWER_DOWN"):
 		return "!"
-	case s.Has("NOT_RESPONDING"):
+	case s.has("NOT_RESPONDING"):
 		return "*"
 	}
 	return ""
 }
 
 func (s NodeState) Down() bool {
-	return s.Base == "DOWN" || s.Has("FAIL") || s.Has("NOT_RESPONDING")
+	return s.Base == "DOWN" || s.has("FAIL") || s.has("NOT_RESPONDING")
 }
 
 func (s NodeState) Draining() bool {
-	return s.Has("DRAIN") && (s.Has("COMPLETING") || s.Base == "ALLOCATED" || s.Base == "MIXED")
+	return s.has("DRAIN") && (s.has("COMPLETING") || s.Base == "ALLOCATED" || s.Base == "MIXED")
 }
 
 func (s NodeState) Label() string {
@@ -108,40 +152,40 @@ func (s NodeState) Label() string {
 
 func (s NodeState) upperLabel() string {
 	busy := s.Base == "ALLOCATED" || s.Base == "MIXED"
-	noResp := s.Has("NOT_RESPONDING")
+	noResp := s.has("NOT_RESPONDING")
 	if s.Base == "INVALID" {
 		return "INVALID"
 	}
-	if s.Has("INVALID_REG") {
+	if s.has("INVALID_REG") {
 		return "INVAL"
 	}
-	if s.Has("MAINTENANCE") && !s.Has("DRAIN") && !busy && s.Base != "DOWN" {
+	if s.has("MAINTENANCE") && !s.has("DRAIN") && !busy && s.Base != "DOWN" {
 		if noResp {
 			return "MAINT*"
 		}
 		return "MAINT"
 	}
-	if (s.Has("REBOOT_REQUESTED") || s.Has("REBOOT_ISSUED")) && !busy {
+	if (s.has("REBOOT_REQUESTED") || s.has("REBOOT_ISSUED")) && !busy {
 		switch {
-		case s.Has("REBOOT_ISSUED"):
+		case s.has("REBOOT_ISSUED"):
 			return "REBOOT^"
 		case noResp:
 			return "REBOOT*"
 		}
 		return "REBOOT"
 	}
-	if s.Has("DRAIN") {
+	if s.has("DRAIN") {
 		if s.Draining() {
 			return "DRAINING" + s.suffix()
 		}
 		return "DRAINED" + s.suffix()
 	}
-	if s.Has("FAIL") {
+	if s.has("FAIL") {
 		star := ""
 		if noResp {
 			star = "*"
 		}
-		if s.Has("COMPLETING") || busy {
+		if s.has("COMPLETING") || busy {
 			return "FAILING" + star
 		}
 		return "FAIL" + star
@@ -166,12 +210,12 @@ func (s NodeState) upperLabel() string {
 		if sfx := s.suffix(); sfx != "" {
 			return "ALLOCATED" + sfx
 		}
-		if s.Has("COMPLETING") {
+		if s.has("COMPLETING") {
 			return "ALLOCATED+"
 		}
 		return "ALLOCATED"
 	}
-	if s.Has("COMPLETING") {
+	if s.has("COMPLETING") {
 		return "COMPLETING" + s.suffix()
 	}
 	switch s.Base {
@@ -180,11 +224,11 @@ func (s NodeState) upperLabel() string {
 			return "IDLE" + sfx
 		}
 		switch {
-		case s.Has("RESERVED"):
+		case s.has("RESERVED"):
 			return "RESERVED"
-		case s.Has("BLOCKED"):
+		case s.has("BLOCKED"):
 			return "BLOCKED"
-		case s.Has("PLANNED"):
+		case s.has("PLANNED"):
 			return "PLANNED"
 		}
 		return "IDLE"
@@ -192,14 +236,14 @@ func (s NodeState) upperLabel() string {
 		if sfx := s.suffix(); sfx != "" {
 			return "MIXED" + sfx
 		}
-		if s.Has("PLANNED") {
+		if s.has("PLANNED") {
 			return "MIXED-"
 		}
 		return "MIXED"
 	case "FUTURE":
 		return "FUTURE" + s.suffix()
 	}
-	if s.Has("RESUME") {
+	if s.has("RESUME") {
 		return "RESUME"
 	}
 	if noResp {

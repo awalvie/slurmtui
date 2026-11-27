@@ -113,7 +113,7 @@ type drainDialogWords struct {
 }
 
 func drainWords(n slurm.Node) drainDialogWords {
-	if n.State.Has("DRAIN") {
+	if n.State.InDrain() {
 		return drainDialogWords{
 			title:       "Edit reason of",
 			first:       "The node stays drained. Only the reason changes.",

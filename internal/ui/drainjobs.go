@@ -21,7 +21,7 @@ func (m Model) runningOn(name string) ([]slurm.Job, []string) {
 	var on []slurm.Job
 	var problems []string
 	for _, j := range m.jobs {
-		if c := classOfJob(j.State); c != jobRunning && c != jobCompleting {
+		if c := j.State.Class(); c != slurm.JobRunning && c != slurm.JobCompleting {
 			continue
 		}
 		h := m.hosts[j.ID()]

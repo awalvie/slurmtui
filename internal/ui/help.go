@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/awalvie/slurmtui/internal/slurm"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -57,16 +58,16 @@ func suffixEntry(glyph, word string) legendEntry {
 
 var legendGroups = []legendGroup{
 	{"States", []legendEntry{
-		stateEntry(nodeClasses[nodeDown], "down or failed"),
-		stateEntry(nodeClasses[nodeDrain], "drain"),
-		stateEntry(nodeClasses[nodeMixed], "mixed"),
-		stateEntry(nodeClasses[nodeAllocated], "allocated"),
-		stateEntry(nodeClasses[nodeIdle], "idle"),
-		stateEntry(nodeClasses[nodeOther], "other"),
-		stateEntry(jobClasses[jobPending], "pending"),
-		stateEntry(jobClasses[jobRunning], "running"),
-		stateEntry(jobClasses[jobCompleting], "completing"),
-		stateEntry(jobClasses[jobCompleted], "completed"),
+		stateEntry(nodeClasses[slurm.NodeDown], "down or failed"),
+		stateEntry(nodeClasses[slurm.NodeDrain], "drain"),
+		stateEntry(nodeClasses[slurm.NodeMixed], "mixed"),
+		stateEntry(nodeClasses[slurm.NodeAllocated], "allocated"),
+		stateEntry(nodeClasses[slurm.NodeIdle], "idle"),
+		stateEntry(nodeClasses[slurm.NodeOther], "other"),
+		stateEntry(jobClasses[slurm.JobPending], "pending"),
+		stateEntry(jobClasses[slurm.JobRunning], "running"),
+		stateEntry(jobClasses[slurm.JobCompleting], "completing"),
+		stateEntry(jobClasses[slurm.JobCompleted], "completed"),
 	}},
 	{"Node suffixes", []legendEntry{
 		suffixEntry("*", "not responding"),

@@ -125,7 +125,7 @@ func describeNode(n slurm.Node) []string {
 	if n.HasFreeMem {
 		free = strconv.FormatInt(n.FreeMem, 10)
 	}
-	class := nodeClasses[classOfNode(n.State)]
+	class := nodeClasses[n.State.Class()]
 	return fieldLines([]field{
 		value("Name", n.Name),
 		{label: "State", value: class.cell(strings.Join(n.State.Raw, "+")), style: class.style},
@@ -144,7 +144,7 @@ func describeNode(n slurm.Node) []string {
 		value("Free MiB", free),
 		value("Features", strings.Join(n.Features, ",")),
 		value("Gres", n.Gres),
-		value("Reboot pending", strconv.FormatBool(n.State.Has("REBOOT_REQUESTED"))),
+		value("Reboot pending", strconv.FormatBool(n.State.RebootRequested())),
 		group("Times"),
 		value("Boot time", absolute(n.BootTime)),
 		value("Last busy", absolute(n.LastBusy)),
@@ -159,7 +159,7 @@ func ageIf(d time.Duration, ok bool) string {
 }
 
 func describeJob(j slurm.Job, timeLeft string, now time.Time) []string {
-	class := jobClasses[classOfJob(j.State)]
+	class := jobClasses[j.State.Class()]
 	state := strings.Join(append([]string{j.State.Base}, j.State.Flags...), "+")
 	if j.StateDescription != "" {
 		state += " (" + j.StateDescription + ")"
@@ -168,7 +168,7 @@ func describeJob(j slurm.Job, timeLeft string, now time.Time) []string {
 	if reason == "None" {
 		reason = ""
 	}
-	pending := j.State.Base == "PENDING"
+	pending := j.State.Pending()
 	start, expected := absolute(j.StartTime), ""
 	if pending {
 		start, expected = "", absolute(j.ExpectedStart)

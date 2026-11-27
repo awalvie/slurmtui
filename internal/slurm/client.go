@@ -45,8 +45,8 @@ type Node struct {
 }
 
 func (n Node) Usable() bool {
-	drained := n.State.Has("DRAIN") && n.AllocCPUs == 0
-	return !n.State.Down() && !drained && !n.State.Has("POWERED_DOWN")
+	drained := n.State.InDrain() && n.AllocCPUs == 0
+	return !n.State.Down() && !drained && !n.State.has("POWERED_DOWN")
 }
 
 type Nodes struct {

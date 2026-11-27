@@ -100,7 +100,7 @@ const (
 
 func jobGroup(s slurm.JobState) int {
 	switch {
-	case classOfJob(s) == jobPending:
+	case s.Pending():
 		return pendingGroup
 	case s.Ended():
 		return endedGroup
@@ -183,12 +183,8 @@ func (m Model) nodeCells(n slurm.Node) ([]cell, error) {
 	}, err
 }
 
-func canRunOut(j slurm.Job) bool {
-	return !j.State.Ended() && j.State.Base != "PENDING"
-}
-
 func (m Model) timeLimit(j slurm.Job) (slurm.TimeLimit, error) {
-	if j.HasOwnTimeLimit() || !canRunOut(j) {
+	if j.HasOwnTimeLimit() || !j.State.CanRunOut() {
 		return j.TimeLimit, nil
 	}
 	p, ok := m.partitions[j.Partition]
@@ -208,7 +204,7 @@ func (m Model) timeLeft(j slurm.Job, now time.Time) (time.Duration, bool, error)
 }
 
 func timeLeftText(j slurm.Job, limit slurm.TimeLimit, now time.Time) string {
-	if limit.Unlimited && canRunOut(j) {
+	if limit.Unlimited && j.State.CanRunOut() {
 		return "UNLIMITED"
 	}
 	if d, ok := j.TimeLeft(limit, now); ok {
@@ -275,7 +271,7 @@ func (m Model) nodeRows(scope string) ([]row, error) {
 		}
 		cells, err := m.nodeCells(n)
 		problem = cmp.Or(problem, err)
-		rows = append(rows, row{key: n.Name, name: n.Name, group: int(classOfNode(n.State)), cells: cells})
+		rows = append(rows, row{key: n.Name, name: n.Name, group: int(n.State.Class()), cells: cells})
 	}
 	return rows, problem
 }

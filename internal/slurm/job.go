@@ -107,7 +107,7 @@ func (j Job) NodeListOrReason() string {
 }
 
 func (j Job) Elapsed(now time.Time) (time.Duration, bool) {
-	if j.State.Base == "PENDING" || j.StartTime.IsZero() {
+	if j.State.Pending() || j.StartTime.IsZero() {
 		return 0, false
 	}
 	if j.State.Ended() {
@@ -117,7 +117,7 @@ func (j Job) Elapsed(now time.Time) (time.Duration, bool) {
 }
 
 func (j Job) Waited(now time.Time) (time.Duration, bool) {
-	if j.State.Base != "PENDING" || j.SubmitTime.IsZero() {
+	if !j.State.Pending() || j.SubmitTime.IsZero() {
 		return 0, false
 	}
 	return now.Sub(j.SubmitTime), true
@@ -128,7 +128,7 @@ func (j Job) HasOwnTimeLimit() bool {
 }
 
 func (j Job) TimeLeft(limit TimeLimit, now time.Time) (time.Duration, bool) {
-	if j.State.Base == "PENDING" || j.State.Ended() || !limit.Set || limit.Unlimited {
+	if !j.State.CanRunOut() || !limit.Set || limit.Unlimited {
 		return 0, false
 	}
 	elapsed, ok := j.Elapsed(now)
@@ -233,7 +233,7 @@ func (w wireJob) job() (Job, error) {
 	if j.SubmitTime, err = w.SubmitTime.time(); err != nil {
 		return Job{}, fmt.Errorf("submit_time: %w", err)
 	}
-	if state.Base == "PENDING" {
+	if state.Pending() {
 		if w.StartTime.Infinite {
 			return j, nil
 		}
