@@ -175,6 +175,10 @@ func startSized(t *testing.T, clk *clock.Fake, width, height int, args []string,
 }
 
 func (r *run) screen() string {
+	return strings.Join(r.lines(), "\n")
+}
+
+func (r *run) lines() []string {
 	r.termMu.Lock()
 	defer r.termMu.Unlock()
 	lines := make([]string, 0, r.height)
@@ -190,7 +194,7 @@ func (r *run) screen() string {
 		}
 		lines = append(lines, strings.TrimRight(line.String(), " "))
 	}
-	return strings.Join(lines, "\n")
+	return lines
 }
 
 func (r *run) waitFor(text string) {
@@ -245,7 +249,7 @@ func isANSI(c color.Color, index int) bool {
 }
 
 func (r *run) frameTop(title string) int {
-	for y, line := range strings.Split(r.screen(), "\n") {
+	for y, line := range r.lines() {
 		if strings.HasPrefix(line, " ┌ "+title) {
 			return y
 		}
@@ -291,7 +295,7 @@ func (r *run) mustFrameTop(title string) int {
 func (r *run) frameRows(title string) (int, int) {
 	r.t.Helper()
 	top := r.mustFrameTop(title)
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	bottom := top
 	for !strings.HasPrefix(lines[bottom], " └") {
 		bottom++
@@ -370,7 +374,7 @@ func (r *run) rightAligned(name string) bool {
 
 func (r *run) tableLayoutAt(top int) ([]tableColumn, []tableRow) {
 	r.t.Helper()
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	padded := func(y int) []rune {
 		line := []rune(lines[y])
 		for len(line) < r.width {
@@ -486,7 +490,7 @@ func (r *run) rowIndex(rows []tableRow, name string) (int, tableRow) {
 
 func (r *run) columnX(row tableRow, name string) int {
 	r.t.Helper()
-	line := []rune(strings.Split(r.screen(), "\n")[row.y])
+	line := []rune(r.lines()[row.y])
 	value := []rune(row.cells[name])
 	if len(value) == 0 {
 		r.t.Fatalf("row on line %d has no %s cell", row.y, name)
@@ -584,7 +588,7 @@ func (r *run) fullScreen(command, title string) {
 
 func (r *run) offsetOf(text string) (int, int) {
 	r.t.Helper()
-	for y, line := range strings.Split(r.screen(), "\n") {
+	for y, line := range r.lines() {
 		if at := strings.Index(line, text); at >= 0 {
 			return len([]rune(line[:at])), y
 		}

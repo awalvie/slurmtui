@@ -99,7 +99,7 @@ func TestDescribeStylesKeysEmptyValuesStatesAndGroups(t *testing.T) {
 	if s := r.styleOf("✕ MIXED"); !isANSI(s.Fg, ansiRed) {
 		t.Fatalf("state value is not in its class colour: %+v", s)
 	}
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	for y, line := range lines {
 		if strings.HasPrefix(line, " │ CPU") {
 			if strings.TrimSpace(strings.Trim(lines[y-1], " │")) != "" {

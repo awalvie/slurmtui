@@ -66,7 +66,7 @@ func (r *run) waitEmptyRow(title, text string) {
 	r.t.Helper()
 	r.waitUntil("faint row "+text, func() bool {
 		top := r.frameTop(title)
-		return top >= 0 && r.isEmptyMessage(top+2, text) && strings.Contains(strings.Split(r.screen(), "\n")[top+2], "│ "+text+" ")
+		return top >= 0 && r.isEmptyMessage(top+2, text) && strings.Contains(r.lines()[top+2], "│ "+text+" ")
 	})
 }
 
@@ -97,7 +97,7 @@ func TestLongEmptyRowIsCutAndKeepsTheRightMargin(t *testing.T) {
 	r.waitMatch(`no nodes match /[a-j]{20,}…`)
 
 	top := r.mustFrameTop("Nodes")
-	line := []rune(strings.Split(r.screen(), "\n")[top+2])
+	line := []rune(r.lines()[top+2])
 	margin := r.width - 3
 	if got := string(line[margin-1]); got != "…" {
 		t.Fatalf("empty row = %q, want it cut with … before the margin", string(line))
@@ -152,12 +152,12 @@ func TestNodesRightTextGoesWhenTheTitleFillsTheFrame(t *testing.T) {
 	r.waitFor("─ cpu 100% · mem 97% ┐")
 	r.send("/gpu-node-07|" + strings.Repeat("x", 30) + "\r")
 	r.waitFor("/gpu-node-07|" + strings.Repeat("x", 30) + " ─")
-	if top := strings.Split(r.screen(), "\n")[r.frameTop("Nodes")]; strings.Contains(top, "cpu") || !strings.HasSuffix(top, "─┐") {
+	if top := r.lines()[r.frameTop("Nodes")]; strings.Contains(top, "cpu") || !strings.HasSuffix(top, "─┐") {
 		t.Fatalf("title row = %q, want no right text", top)
 	}
 	r.send(escKey + "/gpu-node-07|" + strings.Repeat("y", 90) + "\r")
 	r.waitFor("yyy…")
-	if top := []rune(strings.Split(r.screen(), "\n")[r.frameTop("Nodes")]); len(top) != r.width-1 || top[len(top)-1] != '┐' {
+	if top := []rune(r.lines()[r.frameTop("Nodes")]); len(top) != r.width-1 || top[len(top)-1] != '┐' {
 		t.Fatalf("title row = %q, want the title cut inside the frame", string(top))
 	}
 }

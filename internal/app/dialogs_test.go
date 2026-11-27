@@ -15,7 +15,7 @@ type dialogBox struct {
 
 func (r *run) dialogBox(title string) dialogBox {
 	r.t.Helper()
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	for y, line := range lines {
 		at := strings.Index(line, "┌ "+title)
 		if at < 0 {
@@ -38,7 +38,7 @@ func (r *run) dialogBox(title string) dialogBox {
 }
 
 func (r *run) dialogRows(b dialogBox) []string {
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	out := make([]string, 0, b.height-2)
 	for y := b.y + 1; y < b.y+b.height-1; y++ {
 		row := []rune(lines[y])
@@ -78,7 +78,7 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	if c := r.cellAt(gridLeft, 0); c.Content != "C" || !isFaintWithoutColour(c.Style) {
 		t.Fatalf("header cell = %q %+v, want a faint C without colour", c.Content, c.Style)
 	}
-	logoLine := strings.Split(r.screen(), "\n")[1]
+	logoLine := r.lines()[1]
 	logo := len([]rune(logoLine[:strings.Index(logoLine, "███")]))
 	if c := r.cellAt(logo, 1); !isFaintWithoutColour(c.Style) {
 		t.Fatalf("logo cell %+v is not faded", c.Style)

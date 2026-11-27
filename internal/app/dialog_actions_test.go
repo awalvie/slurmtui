@@ -12,7 +12,7 @@ import (
 )
 
 func (r *run) buttonFocused(label string) bool {
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	for y, line := range lines {
 		at := strings.Index(line, " "+label+" ")
 		if at < 0 {

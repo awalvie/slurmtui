@@ -103,7 +103,7 @@ func TestHelpNeverCoversTheHeader(t *testing.T) {
 		r.waitFor("┌ Nodes 1 ")
 		r.send("?")
 		r.waitFor("┌ Help ")
-		lines := strings.Split(r.screen(), "\n")
+		lines := r.lines()
 		for y := range 5 {
 			if strings.ContainsAny(lines[y], "┌┐└┘│─") {
 				t.Fatalf("at %dx%d help covers header row %d: %q\n%s", size.width, size.height, y, lines[y], r.screen())

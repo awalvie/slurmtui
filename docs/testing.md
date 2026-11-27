@@ -7,6 +7,7 @@ Tests drive slurmtui through `app.Main`, as a user does, and check the screen an
 The harness is in `internal/app/harness_test.go`. The fake slurmrestd is in `internal/fakeslurm`. The fake clock is in `internal/clock`.
 
 - Wait for screen text with `waitFor` or `waitUntil`. Never sleep for a fixed time.
+- `screen()` gives the screen as one string, `lines()` as one string for each row.
 - Use `advance` to move the fake clock. It waits until slurmtui has armed its two steady timers (refresh and the 1-second footer tick). A new timer changes `steadyTimers`.
 - Find rows with `rowByName` and read cells by column header. `table()` reads the focused pane (the frame whose title name is blue), or the first frame when no frame has the focus. `pane(title)` reads one pane by its title (`Nodes` or `Jobs`), and `rowByNameIn(title, name)` finds a row in it. Each finds the frame by its title (` ┌ Nodes` or ` ┌ Jobs`) and the column header row under it, in column 3. A column is a run of text between gaps of 2 or more blank cells in all rows. The sort arrow is not part of the column name. In the jobs view, `rowByName` and `selected` use the ID column. `waitNames` waits until the rows show in a given order. `columnNames` gives the column names in screen order. `rightAligned` tells if each cell and the header of a column end at the right edge of the column.
 - The default sorts put rows in severity or priority order, so the first row is not always the first node or job of the fixture. To put the cursor on a row, use `moveTo`, not a count of `j` presses.

@@ -183,7 +183,7 @@ func TestFramesAreSquareAndOnTheGrid(t *testing.T) {
 		t.Errorf("frame goes past 1 column before the right edge: %q", got)
 	}
 	header := r.rowByName("n01")
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	if !strings.HasPrefix(string([]rune(lines[top+1])[gridLeft:]), "NAME") {
 		t.Errorf("column header row does not start in column 3: %q", lines[top+1])
 	}
@@ -263,7 +263,7 @@ func TestNodesTitleCountsProblemsAndAllocationOfUsableNodes(t *testing.T) {
 	r.waitFor("┌ Nodes 6 · ◆ 1 draining · ◆ 1 drained · ✕ 1 down ─")
 	r.waitFor("─ cpu 25% · mem 12% ┐")
 	top := r.frameTop("Nodes")
-	line := []rune(strings.Split(r.screen(), "\n")[top])
+	line := []rune(r.lines()[top])
 	for x, want := range map[string]int{"◆": ansiYellow, "✕": ansiRed} {
 		at := slices.Index(line, []rune(x)[0])
 		c := r.cellAt(at, top)
@@ -334,7 +334,7 @@ func TestIDIsAsWideAsTheIDsOnTheScreen(t *testing.T) {
 	}
 	r, _ := startOnJobs(t, jobs)
 	idWidth := func() int {
-		lines := strings.Split(r.screen(), "\n")
+		lines := r.lines()
 		header := []rune(lines[r.frameTop("Jobs")+1])
 		return strings.Index(string(header[gridLeft:]), "PARTITION") - 2
 	}
@@ -397,7 +397,7 @@ func TestLastColumnFillsTheFrameAndCutsWithoutASpace(t *testing.T) {
 func (r *run) checkFrameEdges(title string) {
 	r.t.Helper()
 	top := r.frameTop(title)
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	for y := top + 1; !strings.HasPrefix(lines[y], " └"); y++ {
 		if r.cellAt(frameLeft, y).Content != "│" || r.cellAt(r.width-2, y).Content != "│" {
 			r.t.Fatalf("line %d does not start and end with │ at the frame edges: %q", y, lines[y])
@@ -420,7 +420,7 @@ func TestHeaderInfoRows(t *testing.T) {
 	r := start(t, []string{"--url", cluster.URL, "--readonly"}, map[string]string{"SLURM_JWT": providedToken("root", startTime.Add(time.Hour))})
 	r.waitFor("┌ Nodes 1 ")
 
-	lines := strings.Split(r.screen(), "\n")
+	lines := r.lines()
 	expires := startTime.Add(time.Hour).Local().Format("15:04")
 	want := []string{"   Context  " + contextOf(cluster) + "  [read-only]", "   Cluster  lamp", "   User     root", "   Slurm    26.05.5", "   Expires  " + expires}
 	for y, w := range want {
@@ -445,7 +445,7 @@ func TestHeaderShowsNoExpiresWithSignedToken(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
-	if line := strings.Split(r.screen(), "\n")[4]; strings.TrimSpace(line) != "" && strings.Contains(line, "Expires") {
+	if line := r.lines()[4]; strings.TrimSpace(line) != "" && strings.Contains(line, "Expires") {
 		t.Fatalf("Expires row = %q, want blank", line)
 	}
 }
@@ -461,7 +461,7 @@ func hintColumn(t *testing.T, line string) int {
 
 func (r *run) headerGrid(x int) []string {
 	var grid []string
-	for _, l := range strings.Split(r.screen(), "\n")[:5] {
+	for _, l := range r.lines()[:5] {
 		row := []rune(l)
 		grid = append(grid, strings.TrimRight(string(row[min(x, len(row)):min(x+64, len(row))]), " "))
 	}
@@ -480,7 +480,7 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
 
-	x := hintColumn(t, strings.Split(r.screen(), "\n")[0])
+	x := hintColumn(t, r.lines()[0])
 	if x != 40 {
 		t.Errorf("hint grid starts at %d, want 40", x)
 	}
@@ -500,7 +500,7 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 
 	r.send("\t")
 	r.waitFor("nodes pane")
-	if got := hintColumn(t, strings.Split(r.screen(), "\n")[0]); got != x {
+	if got := hintColumn(t, r.lines()[0]); got != x {
 		t.Errorf("jobs hint grid starts at %d, want %d as for nodes", got, x)
 	}
 	wantGrid(t, r.headerGrid(x), []string{
@@ -518,7 +518,7 @@ func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
 	for _, args := range [][]string{{"--url", cluster.URL}, {"--url", cluster.URL, "--readonly"}} {
 		r := start(t, args, map[string]string{"SLURM_JWT": aliceToken})
 		r.waitFor("┌ Nodes 2 ")
-		if got := hintColumn(t, strings.Split(r.screen(), "\n")[0]); got != want {
+		if got := hintColumn(t, r.lines()[0]); got != want {
 			t.Errorf("with %v the hint grid starts at %d, want %d", args, got, want)
 		}
 	}
@@ -543,7 +543,7 @@ func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
 func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
 	r := startReadOnly(t, cluster)
-	header := strings.Join(strings.Split(r.screen(), "\n")[:5], "\n")
+	header := strings.Join(r.lines()[:5], "\n")
 	for _, h := range []string{"D ", "U ", "edit reason", "resume"} {
 		if strings.Contains(header, h) {
 			t.Errorf("read-only header shows %q:\n%s", h, header)
@@ -551,7 +551,7 @@ func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 	}
 	r.fullScreen("jobs", "Jobs")
 	r.waitFor("┌ Jobs 1 ")
-	if header := strings.Join(strings.Split(r.screen(), "\n")[:5], "\n"); strings.Contains(header, "ctrl-d") {
+	if header := strings.Join(r.lines()[:5], "\n"); strings.Contains(header, "ctrl-d") {
 		t.Errorf("read-only header shows ctrl-d:\n%s", header)
 	}
 }
@@ -562,7 +562,7 @@ func TestLogoShowsOnlyWhenItFits(t *testing.T) {
 
 	wide := startProvided(t, cluster)
 	wide.waitFor("┌ Nodes 1 ")
-	line := strings.Split(wide.screen(), "\n")[0]
+	line := wide.lines()[0]
 	if !strings.HasSuffix(line, logoRow) {
 		t.Fatalf("logo row = %q, want the can lid and tab", line)
 	}
@@ -597,7 +597,7 @@ func TestLogoShowsOnlyWhenItFits(t *testing.T) {
 }
 
 func (r *run) bottomLine() string {
-	return strings.Split(r.screen(), "\n")[r.height-1]
+	return r.lines()[r.height-1]
 }
 
 func (r *run) flashStyle(text string) uv.Style {
@@ -672,7 +672,7 @@ func TestBodyHeightFollowsTheTerminal(t *testing.T) {
 	small := startSizedOn(t, cluster, 80, 24)
 	small.waitFor("┌ Nodes 1 ")
 	small.fullScreen("nodes", "Nodes")
-	lines := strings.Split(small.screen(), "\n")
+	lines := small.lines()
 	top := small.frameTop("Nodes")
 	bottom := top
 	for !strings.HasPrefix(lines[bottom], " └") {

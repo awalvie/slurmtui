@@ -174,7 +174,7 @@ func TestRightTextGoesWhenItDoesNotFit(t *testing.T) {
 }
 
 func (r *run) hintArea() string {
-	return strings.Join(strings.Split(r.screen(), "\n")[:5], "\n")
+	return strings.Join(r.lines()[:5], "\n")
 }
 
 func (r *run) waitHint(text string) {
