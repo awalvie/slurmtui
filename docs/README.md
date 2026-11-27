@@ -21,6 +21,5 @@
 
 ## Other places
 
-- `.scratch/slurmtui-v1/`: the spec and the tickets.
 - `testdata/slurm-26.05/`: real replies recorded from Slurm, and the OpenAPI spec.
 - `dev/compose/`: the Docker Slurm cluster.

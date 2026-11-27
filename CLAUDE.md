@@ -12,7 +12,7 @@ A k9s-style terminal UI that shows a Slurm cluster and acts on it through slurmr
 
 ## Where to look
 
-- Work to do: the spec and tickets in `.scratch/slurmtui-v1/`. Read the ticket and its blockers before you start.
+- Work to do: the spec and tickets in `.scratch/slurmtui-v1/` (local only, not in git). Read the ticket and its blockers before you start.
 - Before you render or send a Slurm field: `docs/slurm-domain.md` (behaviour) and `docs/slurmrestd-v0.0.45.md` (JSON shapes).
 - Before you change layout, keys, dialogs or config: `docs/ux.md`.
 - Before you change a test or the test harness: `docs/testing.md`.
@@ -36,7 +36,7 @@ For docs, comments, commit messages and replies:
 
 ### Issue tracker
 
-Issues live as local markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+Issues live as local markdown files under `.scratch/<feature>/` (not in git). See `docs/agents/issue-tracker.md` (local only).
 
 ### Triage labels
 

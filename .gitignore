@@ -13,3 +13,8 @@ CLAUDE.local.md
 config.yaml
 result-slurm-image
 .claude/worktrees/
+
+# Agent working files (local only)
+.scratch/
+.claude/settings.json
+docs/agents/
