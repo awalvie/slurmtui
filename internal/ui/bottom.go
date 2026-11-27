@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	bottomGap  = "  "
-	promptHelp = "   enter keep · esc undo"
+	bottomGap         = "  "
+	filterPromptHelp  = "enter keep · esc undo"
+	commandPromptHelp = "enter run · esc cancel"
 )
 
 type flashLevel int
@@ -56,15 +57,15 @@ func (m Model) flashLine(problem error) (string, flashLevel) {
 func (m Model) prompt() (string, bool) {
 	switch {
 	case m.command != nil:
-		return m.promptLine(":", *m.command, ""), true
+		return m.promptLine(":", *m.command, commandPromptHelp), true
 	case m.filtering:
-		return m.promptLine("/", m.current().filter, " · filtering "+specOf(m.current().kind).name), true
+		return m.promptLine("/", m.current().filter, filterPromptHelp+" · filtering "+specOf(m.current().kind).name), true
 	}
 	return "", false
 }
 
-func (m Model) promptLine(mark, text, what string) string {
-	return gridEdge + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + dimStyle.Render(promptHelp+what)
+func (m Model) promptLine(mark, text, help string) string {
+	return gridEdge + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + bottomGap + dimStyle.Render(help)
 }
 
 func (m Model) bottomLine(width int, problem error) string {

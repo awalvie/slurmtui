@@ -8,19 +8,19 @@ import (
 )
 
 var canLogoGlyphs = []string{
-	" ▀▄▄▄█▄▄▄ ▄",
-	"▀ ███████  ",
-	"  ███████  ",
-	"  ███████  ",
-	"  ▀▀▀▀▀▀▀  ",
+	" ▄▄█▄▄ ",
+	"███████",
+	"███████",
+	"███████",
+	"▀▀▀▀▀▀▀",
 }
 
 var canLogoColors = []string{
-	" oWSSSSSD o",
-	"o WSSSSSD  ",
-	"  CCCCCCc  ",
-	"  BBGBGBB  ",
-	"  WSSSSSD  ",
+	" DDDDD ",
+	"WSSSSSD",
+	"CCCCCCc",
+	"WSSSSSD",
+	"DDDDDDD",
 }
 
 var canLogoPalette = map[rune]ansi.BasicColor{
@@ -29,9 +29,6 @@ var canLogoPalette = map[rune]ansi.BasicColor{
 	'D': logoShadeColor,
 	'C': logoBandColor,
 	'c': logoBandShade,
-	'B': logoLabelColor,
-	'G': logoNodeColor,
-	'o': logoBubbleColor,
 }
 
 func canLogo() []string {

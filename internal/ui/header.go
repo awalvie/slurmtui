@@ -1,18 +1,15 @@
 package ui
 
-import (
-	"strings"
-
-	"github.com/charmbracelet/x/ansi"
-)
+import "github.com/charmbracelet/x/ansi"
 
 const (
 	headerRows      = 5
 	infoLabelWidth  = 9
+	gridColumn      = 40
 	gridAfterInfo   = 6
 	gridColumnGap   = 4
 	logoAfterGrid   = 4
-	logoRightMargin = 2
+	logoRightMargin = 1
 	expiresLayout   = "15:04"
 )
 
@@ -41,25 +38,31 @@ func (m Model) infoRows() []string {
 	}
 }
 
-func hintGrid(hints []hint) []string {
+func (m Model) infoRowCount() int {
+	if m.session.Expires.IsZero() {
+		return headerRows - 1
+	}
+	return headerRows
+}
+
+func hintGrid(hints []hint, rows int) []string {
 	grid := make([]string, headerRows)
-	for c := 0; c*headerRows < len(hints); c++ {
-		chunk := hints[c*headerRows : min((c+1)*headerRows, len(hints))]
-		keyWidth, labelWidth := 0, 0
-		for _, h := range chunk {
-			keyWidth = max(keyWidth, ansi.StringWidth(h.key))
-			labelWidth = max(labelWidth, ansi.StringWidth(h.label))
+	if len(hints) == 0 {
+		return grid
+	}
+	columns := (len(hints) + rows - 1) / rows
+	rows = (len(hints) + columns - 1) / columns
+	keyWidth, labelWidth := 0, 0
+	for _, h := range hints {
+		keyWidth = max(keyWidth, ansi.StringWidth(h.key))
+		labelWidth = max(labelWidth, ansi.StringWidth(h.label))
+	}
+	for i, h := range hints {
+		r := i % rows
+		if i >= rows {
+			grid[r] = fitLeft(grid[r], (i/rows)*(keyWidth+1+labelWidth+gridColumnGap))
 		}
-		for r := range grid {
-			if c > 0 {
-				grid[r] += strings.Repeat(" ", gridColumnGap)
-			}
-			if r < len(chunk) {
-				grid[r] += keyStyle.Render(fitLeft(chunk[r].key, keyWidth)) + " " + dimStyle.Render(fitLeft(chunk[r].label, labelWidth))
-				continue
-			}
-			grid[r] += strings.Repeat(" ", keyWidth+1+labelWidth)
-		}
+		grid[r] += keyStyle.Render(fitLeft(h.key, keyWidth)) + " " + dimStyle.Render(h.label)
 	}
 	return grid
 }
@@ -76,16 +79,17 @@ func (m Model) header(width int) []string {
 	logo := canLogo()
 	info := m.infoRows()
 	infoWidth := widest(info)
-	grid := hintGrid(m.hints())
+	grid := hintGrid(m.hints(), m.infoRowCount())
 	gridWidth := widest(grid)
+	gridAt := max(gridColumn, infoWidth+gridAfterInfo)
 	logoWidth := widest(logo) + logoRightMargin
-	showGrid := infoWidth+gridAfterInfo+gridWidth <= width
-	showLogo := showGrid && infoWidth+gridAfterInfo+gridWidth+logoAfterGrid+logoWidth <= width
+	showGrid := gridAt+gridWidth <= width
+	showLogo := showGrid && gridAt+gridWidth+logoAfterGrid+logoWidth <= width
 	out := make([]string, headerRows)
 	for r := range out {
 		line := info[r]
 		if showGrid {
-			line = fitLeft(line, infoWidth) + strings.Repeat(" ", gridAfterInfo) + grid[r]
+			line = fitLeft(line, gridAt) + grid[r]
 		}
 		if showLogo && r < len(logo) {
 			line = fitLeft(line, width-logoWidth) + logo[r]

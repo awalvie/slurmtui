@@ -9,11 +9,11 @@ The prototype on branch `prototype/visual-system`, commit `1944627` (`cmd/proto-
 The start screen is the Overview. It has four bands, from top to bottom: the header (5 rows), the Nodes pane, the Jobs pane and the bottom line (1 row). Example at 100x32:
 
 ```
-   Context  prod         j/k   move           /   filter
-   Cluster  lamp         enter jobs           tab jobs pane
-   User     alice        d     describe       ?   more
-   Slurm    26.05.5      D     edit reason
-   Expires  18:00        U     resume
+   Context  prod                        j/k   move         U     resume
+   Cluster  lamp                        enter jobs         /     filter
+   User     alice                       d     describe     tab   jobs pane
+   Slurm    26.05.5                     D     drain        ?     more
+   Expires  18:00
 
  ┌ Nodes 40 · ◆ 2 draining · ◆ 2 drained · ✕ 2 down ─────────────────────────── cpu 56% · mem 54% ┐
  │ NAME  STATE ↑          CPU  MEM(GiB)  GRES  BY     AGE   REASON                                │
@@ -171,20 +171,20 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 ### Header
 
 ```
-   Context  prod  [read-only]   j/k   move           /   filter            <logo>
-   Cluster  lamp                enter jobs           tab jobs pane
-   User     alice               d     describe       ?   more
-   Slurm    26.05.5             D     edit reason
-   Expires  18:00               U     resume
+   Context  prod  [read-only]           j/k   move           U     resume       <logo>
+   Cluster  lamp                        enter jobs           /     filter
+   User     alice                       d     describe       tab   jobs pane
+   Slurm    26.05.5                     D     edit reason    ?     more
+   Expires  18:00
 ```
 
 - The header has no frame. It is 5 rows high.
 - Info rows: `Context`, `Cluster` (`meta.slurm.cluster`), `User`, `Slurm` (version), `Expires`. The label is in `dim`, padded to 9 cells. The value is in `text`. The Context value is bold. `User root` has the value in `bad` bold.
 - `Expires` shows only with a Provided token: the token `exp` in local time, `HH:MM`. With a Signed token, the row is blank.
 - In read-only mode, `[read-only]` in `warn` bold follows the Context value, after 2 spaces (sofka).
-- Key hints: a grid that starts 6 cells after the widest info row. The grid is 5 rows high and fills column by column (k9s). Grid columns are 4 spaces apart.
-- Each hint is the key in `key`, padded to the widest key in its grid column, 1 space, then the label in `dim`.
-- The logo is the pixel soda can (`canLogo` in `internal/ui/logo.go`): 5 rows, 11 cells, in half blocks (`▀ ▄ █`), on rows 1 to 5. Each cell has 1 `logo*` colour and no background. The logo ends 2 cells before the right edge of the screen. The pictures are in `assets/`.
+- Key hints: a grid that starts in column 40 on every screen, or 6 cells after the widest info row when that is further right. The grid fills column by column (k9s). It has at most one row for each info row (4 rows when `Expires` is not shown), and the columns are balanced: with 6 hints and 5 rows, each column has 3 hints. `? more` is the last hint. Grid columns are 4 spaces apart.
+- Each hint is the key in `key`, padded to the widest key of the grid, 1 space, then the label in `dim`, padded to the widest label of the grid. Thus all grid columns have the same width.
+- The logo is the pixel soda can (`canLogo` in `internal/ui/logo.go`): 5 rows, 7 cells, in half blocks (`▀ ▄ █`), on rows 1 to 5. It has a solid body, one label band and a tab in the centre of the lid. Each cell has 1 `logo*` colour and no background. The lid, the right edge and the bottom are in `BrightBlack`, so the can also shows on a light background. The right edge of the logo is in the column of the right edge of the frames. The pictures are in `assets/`.
 - If the grid does not fit, slurmtui hides the grid and the logo. If the logo does not fit with 4 cells after the grid, slurmtui hides only the logo. The info rows always show.
 
 ### Key hints
@@ -205,7 +205,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 2 spaces.
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
 - Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
-- While the user types a filter: `/` in `accent` bold at column 3, the text in `text`, a `█` cursor in `accent`, then `   enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form.
+- While the user types a filter: `/` in `accent` bold at column 3, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
 - While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 3, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
 ### Dialogs

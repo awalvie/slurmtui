@@ -195,7 +195,7 @@ func TestHintsFollowTheFocusedPaneAndRow(t *testing.T) {
 	r.waitSelected("n2")
 	r.waitHint("D     drain")
 	r.waitHint("U     resume")
-	r.waitHint("tab jobs pane")
+	r.waitHint("tab   jobs pane")
 	r.moveTo("n1")
 	r.waitHint("D     edit reason")
 	r.waitHint("U     resume")

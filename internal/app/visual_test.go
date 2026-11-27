@@ -436,36 +436,57 @@ func hintColumn(t *testing.T, line string) int {
 	return len([]rune(line[:at]))
 }
 
+func (r *run) headerGrid(x int) []string {
+	var grid []string
+	for _, l := range strings.Split(r.screen(), "\n")[:5] {
+		row := []rune(l)
+		grid = append(grid, strings.TrimRight(string(row[min(x, len(row)):min(x+48, len(row))]), " "))
+	}
+	return grid
+}
+
+func wantGrid(t *testing.T, got, want []string) {
+	t.Helper()
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("hint grid:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+}
+
 func TestHintGridShowsKeysOfTheView(t *testing.T) {
-	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}})
-	r := startProvided(t, cluster)
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
+	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
 
-	lines := strings.Split(r.screen(), "\n")
-	widest := 0
-	for _, l := range lines[:5] {
-		info := strings.SplitN(strings.TrimRight(l, " "), "      ", 2)[0]
-		widest = max(widest, len([]rune(info)))
+	x := hintColumn(t, strings.Split(r.screen(), "\n")[0])
+	if x != 40 {
+		t.Errorf("hint grid starts at %d, want 40", x)
 	}
-	x := hintColumn(t, lines[0])
-	if x != widest+6 {
-		t.Errorf("hint grid starts at %d, want %d (6 after the widest info row)", x, widest+6)
-	}
-	grid := ""
-	for _, l := range lines[:5] {
-		grid += string([]rune(l)[x:]) + "\n"
-	}
-	for _, h := range []string{"j/k   move", "enter jobs", "d     describe", "D     edit reason", "U     resume", "/   filter", "?   more"} {
-		if !strings.Contains(grid, h) {
-			t.Errorf("hint grid has no %q:\n%s", h, grid)
-		}
-	}
+	wantGrid(t, r.headerGrid(x), []string{
+		"j/k   move           U     resume",
+		"enter jobs           /     filter",
+		"d     describe       tab   jobs pane",
+		"D     edit reason    ?     more",
+		"",
+	})
 	if key := r.cellAt(x, 0).Style; key.Attrs&uv.AttrBold == 0 {
 		t.Errorf("hint key is not bold")
 	}
 	if label := r.cellAt(x+6, 0).Style; label.Attrs&uv.AttrFaint == 0 {
 		t.Errorf("hint label is not faint")
 	}
+
+	r.send("\t")
+	r.waitFor("nodes pane")
+	if got := hintColumn(t, strings.Split(r.screen(), "\n")[0]); got != x {
+		t.Errorf("jobs hint grid starts at %d, want %d as for nodes", got, x)
+	}
+	wantGrid(t, r.headerGrid(x), []string{
+		"j/k    move          /      filter",
+		"d      describe      tab    nodes pane",
+		"ctrl-d cancel        ?      more",
+		"",
+		"",
+	})
 }
 
 func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
@@ -486,19 +507,25 @@ func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 }
 
 func TestLogoShowsOnlyWhenItFits(t *testing.T) {
-	logoRow := " ▀▄▄▄█▄▄▄ ▄"
+	logoRow := " ▄▄█▄▄"
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
 	wide := startProvided(t, cluster)
 	wide.waitFor("┌ Nodes 1 ")
 	line := strings.Split(wide.screen(), "\n")[0]
-	if !strings.HasSuffix(line, logoRow) || len([]rune(line)) != wide.width-2 {
-		t.Fatalf("logo row = %q, want the can logo ending 2 cells before the right edge", line)
+	if !strings.HasSuffix(line, logoRow) {
+		t.Fatalf("logo row = %q, want the can lid and tab", line)
 	}
-	if !isANSI(wide.cellAt(wide.width-3, 0).Style.Fg, ansiCyan) {
-		t.Fatalf("logo bubble is not cyan")
+	frameRight := wide.width - 2
+	for y := 1; y < 5; y++ {
+		if c := wide.cellAt(frameRight, y); c.Content != "█" && c.Content != "▀" {
+			t.Fatalf("logo row %d ends with %q at the frame edge, want the can\n%s", y, c.Content, wide.screen())
+		}
+		if c := wide.cellAt(frameRight+1, y); c.Content != " " && c.Content != "" {
+			t.Fatalf("logo row %d goes past the frame edge", y)
+		}
 	}
-	if band := wide.cellAt(wide.width-11, 2); band.Content != "█" || !isANSI(band.Style.Fg, ansiBrightCyan) {
+	if band := wide.cellAt(frameRight-3, 2); band.Content != "█" || !isANSI(band.Style.Fg, ansiBrightCyan) {
 		t.Fatalf("logo band = %q %+v, want a bright cyan █", band.Content, band.Style)
 	}
 
@@ -584,12 +611,12 @@ func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
 	r.send("/n")
-	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   /n█   enter keep · esc undo") })
+	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   /n█  enter keep · esc undo") })
 	if c := r.cellAt(5, r.height-1); c.Content != "█" || !isANSI(c.Style.Fg, ansiCyan) {
 		t.Fatalf("prompt cursor = %q %v, want a cyan █", c.Content, c.Style)
 	}
 	r.send(escKey + ":jo")
-	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   :jo█   enter keep · esc undo") })
+	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   :jo█  enter run · esc cancel") })
 	if strings.Contains(r.screen(), "<nodes>") {
 		t.Fatalf("screen still shows crumbs:\n%s", r.screen())
 	}

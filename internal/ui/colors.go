@@ -14,14 +14,11 @@ const (
 )
 
 const (
-	logoShineColor  = ansi.BrightWhite
-	logoCanColor    = ansi.White
-	logoShadeColor  = ansi.BrightBlack
-	logoBandColor   = ansi.BrightCyan
-	logoBandShade   = ansi.Cyan
-	logoLabelColor  = ansi.Blue
-	logoNodeColor   = ansi.BrightGreen
-	logoBubbleColor = ansi.Cyan
+	logoShineColor = ansi.BrightWhite
+	logoCanColor   = ansi.White
+	logoShadeColor = ansi.BrightBlack
+	logoBandColor  = ansi.BrightCyan
+	logoBandShade  = ansi.Cyan
 )
 
 var (
