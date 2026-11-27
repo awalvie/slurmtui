@@ -5,8 +5,7 @@ import "github.com/charmbracelet/x/ansi"
 const (
 	headerRows      = 5
 	infoLabelWidth  = 9
-	gridColumn      = 40
-	gridAfterInfo   = 6
+	gridAfterInfo   = 4
 	gridColumnGap   = 4
 	logoAfterGrid   = 4
 	logoRightMargin = 2
@@ -80,11 +79,9 @@ func widest(lines []string) int {
 func (m Model) header(width int) []string {
 	logo := canLogo()
 	info := m.infoRows()
-	widestInfo := m
-	widestInfo.session.ReadOnly = true
 	grid := hintGrid(m.hints(), m.infoRowCount())
 	gridWidth := widest(grid)
-	gridAt := max(gridColumn, widest(widestInfo.infoRows())+gridAfterInfo)
+	gridAt := widest(info) + gridAfterInfo
 	logoWidth := widest(logo) + logoRightMargin
 	showGrid := gridAt+gridWidth <= width-logoRightMargin
 	showLogo := showGrid && gridAt+gridWidth+logoAfterGrid+logoWidth <= width

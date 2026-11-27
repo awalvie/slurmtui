@@ -171,18 +171,18 @@ The budget that remains after the Fit columns goes to the Flex columns (sofka wa
 ### Header
 
 ```
- Context  prod  [read-only]             j/k   move           /     filter       <logo>
- Cluster  lamp                          enter jobs           tab   jobs pane
- User     alice                         d     describe       q     quit
- Slurm    26.05.5                       D     edit reason    ?     more
- Expires  18:00                         U     resume
+ Context  prod  [read-only]    j/k   move           /     filter       <logo>
+ Cluster  lamp                 enter jobs           tab   jobs pane
+ User     alice                d     describe       q     quit
+ Slurm    26.05.5              D     edit reason    ?     more
+ Expires  18:00                U     resume
 ```
 
 - The header has no frame. It is 5 rows high.
 - Info rows: `Context`, `Cluster` (`meta.slurm.cluster`), `User`, `Slurm` (version), `Expires`. The label is in `dim`, padded to 9 cells. The value is in `text`. The Context value is bold. `User root` has the value in `bad` bold.
 - `Expires` shows only with a Provided token: the token `exp` in local time, `HH:MM`. With a Signed token, the row is blank.
 - In read-only mode, `[read-only]` in `warn` bold follows the Context value, after 2 spaces (sofka).
-- Key hints: a grid that starts in one column on every screen: column 40, or 6 cells after the widest info row that the Context can show (with `[read-only]`) when that is further right. Thus the grid does not move when `[read-only]` shows or not. The grid fills column by column (k9s). It has at most one row for each info row (4 rows when `Expires` is not shown), and the columns are balanced: with 6 hints and 5 rows, each column has 3 hints. `? more` is the last hint. Grid columns are 4 spaces apart.
+- Key hints: a grid that starts 4 cells after the widest info row. The info rows include `[read-only]` and `Expires` when they show in this session. These do not change in a session, so the grid does not move when the focus or the row changes. The `Cluster` and `Slurm` values come with the first reply, so the grid can move one time then, when one of them is wider than the other rows. The grid fills column by column (k9s). It has at most one row for each info row (4 rows when `Expires` is not shown), and the columns are balanced: with 6 hints and 5 rows, each column has 3 hints. `? more` is the last hint. Grid columns are 4 spaces apart.
 - Each hint is the key in `key`, padded to the widest key of the grid, 1 space, then the label in `dim`, padded to the widest label of the grid. Thus all grid columns have the same width.
 - The logo is the pixel soda can (`canLogo` in `internal/ui/logo.go`): 5 rows, 7 cells, in half blocks (`▀ ▄ █`), on rows 1 to 5. It has a solid body, one label band and a tab in the centre of the lid. Each cell has 1 `logo*` colour and no background. The lid, the right edge and the bottom are in `BrightBlack`, so the can also shows on a light background. The right edge of the logo is in the column of the right edge of the frames. The pictures are in `assets/`.
 - The grid ends at or before the right edge of the frames. If the grid does not fit, slurmtui hides the grid and the logo. If the logo does not fit with 4 cells after the grid, slurmtui hides only the logo. The info rows always show.
