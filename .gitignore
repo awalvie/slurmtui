@@ -8,3 +8,8 @@ CLAUDE.local.md
 
 # Secrets
 .env
+
+*.key
+config.yaml
+result-slurm-image
+.claude/worktrees/

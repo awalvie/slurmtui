@@ -1,0 +1,15 @@
+version: "2"
+run:
+  build-tags:
+    - integration
+linters:
+  enable:
+    - errchkjson
+    - nilerr
+  settings:
+    errcheck:
+      check-blank: true
+      check-type-assertions: true
+formatters:
+  enable:
+    - gofmt

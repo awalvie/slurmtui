@@ -1,0 +1,24 @@
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - run: nix develop --command ./scripts/check
+      - run: nix build
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - run: nix run .#openapi-spec && git diff --exit-code testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json
+      - run: nix develop --command just cluster-up
+      - run: nix develop --command just cluster-wait
+      - run: nix develop --command just cluster-seed
+      - run: nix develop --command just cluster-test -v
+      - if: failure()
+        run: docker compose -f dev/compose/compose.yaml logs
