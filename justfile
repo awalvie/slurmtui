@@ -64,3 +64,6 @@ cluster-test *args:
 
 openapi-spec:
     nix run .#openapi-spec
+
+screenshots:
+    ./dev/screenshots/make

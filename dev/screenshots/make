@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp" dev/screenshots/screenshots.gif' EXIT
+go build -o "$tmp/bin/slurmtui" ./cmd/slurmtui
+mkdir -p "$tmp/config" "$tmp/empty" assets/screenshots
+printf 'slurmtui:\n  contexts:\n    dev:\n      url: http://127.0.0.1:6820\n      tokenEnv: SLURM_JWT\n' >"$tmp/config/config.yaml"
+SLURM_JWT=$(just cluster-token) \
+  SLURMTUI_CONFIG_DIR="$tmp/config" \
+  SCREENSHOTS_EMPTY_CONFIG="$tmp/empty" \
+  PATH="$tmp/bin:$PATH" \
+  nix run nixpkgs#vhs -- dev/screenshots/screenshots.tape
