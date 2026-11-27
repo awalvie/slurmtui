@@ -318,3 +318,12 @@ func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
 		t.Fatalf("error is not red: %+v", s)
 	}
 }
+
+func TestSetupFormTypesQ(t *testing.T) {
+	r := start(t, nil, map[string]string{"SLURM_JWT": aliceToken})
+	r.waitFor("Connect to Slurm")
+
+	r.send("q")
+
+	r.waitFor("▸ Context name  q█")
+}

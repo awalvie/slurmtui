@@ -90,6 +90,7 @@ var bindings = []binding{
 	{keys: []string{"esc"}, shown: "esc", place: anywhere, help: "Clear the filter, then the scope, then back", hint: Model.escHint, do: just(Model.back)},
 	{keys: []string{"tab", "shift+tab"}, shown: "tab", place: bothPanes, help: "Other pane", hint: Model.tabHint, do: Model.tab},
 	{keys: []string{"ctrl+r"}, shown: "ctrl-r", place: anywhere, help: "Refresh now", do: func(m Model, _ string) (Model, tea.Cmd) { return m.refresh() }},
+	{keys: []string{"q"}, shown: "q", place: anywhere, help: "Quit; in describe, JSON and help, back", hint: Model.quitHint, do: Model.quitOrBack},
 	{keys: []string{"?"}, shown: "?", place: anywhere, hint: label("more"), do: just(Model.toggleHelp)},
 	{keys: []string{":"}, shown: ":", place: anywhere, do: just(Model.startCommand)},
 }
@@ -203,6 +204,23 @@ func (m Model) escHint(f frame) string {
 		return "all jobs"
 	}
 	return ""
+}
+
+func (m Model) quitHint(f frame) string {
+	if f.kind == nodesView || f.kind == jobsView {
+		return "quit"
+	}
+	return ""
+}
+
+func (m Model) quitOrBack(string) (Model, tea.Cmd) {
+	switch kind := m.top().kind; {
+	case kind == helpView:
+		return m.toggleHelp(), nil
+	case isDetail(kind):
+		return m.pop(), nil
+	}
+	return m, tea.Quit
 }
 
 func (m Model) tabHint(f frame) string {

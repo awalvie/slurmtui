@@ -463,7 +463,7 @@ func (r *run) headerGrid(x int) []string {
 	var grid []string
 	for _, l := range strings.Split(r.screen(), "\n")[:5] {
 		row := []rune(l)
-		grid = append(grid, strings.TrimRight(string(row[min(x, len(row)):min(x+48, len(row))]), " "))
+		grid = append(grid, strings.TrimRight(string(row[min(x, len(row)):min(x+64, len(row))]), " "))
 	}
 	return grid
 }
@@ -485,10 +485,10 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 		t.Errorf("hint grid starts at %d, want 40", x)
 	}
 	wantGrid(t, r.headerGrid(x), []string{
-		"j/k   move           U     resume",
-		"enter jobs           /     filter",
-		"d     describe       tab   jobs pane",
-		"D     edit reason    ?     more",
+		"j/k   move           D     edit reason    tab   jobs pane",
+		"enter jobs           U     resume         q     quit",
+		"d     describe       /     filter         ?     more",
+		"",
 		"",
 	})
 	if key := r.cellAt(x, 0).Style; key.Attrs&uv.AttrBold == 0 {
@@ -504,10 +504,10 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 		t.Errorf("jobs hint grid starts at %d, want %d as for nodes", got, x)
 	}
 	wantGrid(t, r.headerGrid(x), []string{
-		"j/k    move          /      filter",
-		"d      describe      tab    nodes pane",
+		"j/k    move          tab    nodes pane",
+		"d      describe      q      quit",
 		"ctrl-d cancel        ?      more",
-		"",
+		"/      filter",
 		"",
 	})
 }

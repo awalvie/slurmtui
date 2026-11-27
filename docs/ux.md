@@ -9,11 +9,11 @@ The prototype on branch `prototype/visual-system`, commit `1944627` (`cmd/proto-
 The start screen is the Overview. It has four bands, from top to bottom: the header (5 rows), the Nodes pane, the Jobs pane and the bottom line (1 row). Example at 100x32:
 
 ```
-   Context  prod                        j/k   move         U     resume
-   Cluster  lamp                        enter jobs         /     filter
-   User     alice                       d     describe     tab   jobs pane
+   Context  prod                        j/k   move         /     filter
+   Cluster  lamp                        enter jobs         tab   jobs pane
+   User     alice                       d     describe     q     quit
    Slurm    26.05.5                     D     drain        ?     more
-   Expires  18:00
+   Expires  18:00                       U     resume
 
  ┌ Nodes 40 · ◆ 2 draining · ◆ 2 drained · ✕ 2 down ─────────────────────────── cpu 56% · mem 54% ┐
  │ NAME  STATE ↑          CPU  MEM(GiB)  GRES  BY     AGE   REASON                                │
@@ -171,11 +171,11 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 ### Header
 
 ```
-   Context  prod  [read-only]           j/k   move           U     resume       <logo>
-   Cluster  lamp                        enter jobs           /     filter
-   User     alice                       d     describe       tab   jobs pane
+   Context  prod  [read-only]           j/k   move           /     filter       <logo>
+   Cluster  lamp                        enter jobs           tab   jobs pane
+   User     alice                       d     describe       q     quit
    Slurm    26.05.5                     D     edit reason    ?     more
-   Expires  18:00
+   Expires  18:00                       U     resume
 ```
 
 - The header has no frame. It is 5 rows high.
@@ -191,8 +191,8 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 
 The hints show the keys of the focused pane, in this order. They change with the row under the cursor (contextual hints).
 
-- Nodes pane: `j/k move`, `enter jobs`, `d describe`, then `D edit reason` and `U resume` when the node has the DRAIN flag, `D drain` and `U resume` when the node is down without DRAIN, or `D drain` for all other nodes. Then `/ filter`, or `esc clear filter` while the pane has a filter. Then `tab jobs pane`, `? more`.
-- Jobs pane: `j/k move`, `d describe`, `ctrl-d cancel`, then `esc clear filter` while the pane has a filter, `esc all jobs` while it has a node scope, or `/ filter`. Then `tab nodes pane`, `? more`.
+- Nodes pane: `j/k move`, `enter jobs`, `d describe`, then `D edit reason` and `U resume` when the node has the DRAIN flag, `D drain` and `U resume` when the node is down without DRAIN, or `D drain` for all other nodes. Then `/ filter`, or `esc clear filter` while the pane has a filter. Then `tab jobs pane`, `q quit`, `? more`.
+- Jobs pane: `j/k move`, `d describe`, `ctrl-d cancel`, then `esc clear filter` while the pane has a filter, `esc all jobs` while it has a node scope, or `/ filter`. Then `tab nodes pane`, `q quit`, `? more`.
 - Full-screen `:nodes` and `:jobs`: the same hints, without the `tab` hint.
 - Describe and raw JSON: `j/k scroll`, `esc back`, `? more`. Help: `j/k scroll`, `esc back`.
 - Dialog: `tab next button`, `enter confirm`, `esc keep`. Drain dialog: `type reason` first.
@@ -348,12 +348,13 @@ The Jobs pane of the Overview and the full-screen `:jobs` view use the same colu
 - In a scoped pane, a job hostlist that does not expand is an error in the flash that names the job and the value, for example `job 9: nodes "n[1-": ...`.
 - `esc` in a pane: first it clears the filter of the focused pane. If there is no filter, `esc` in the Jobs pane removes the node scope. If there is nothing to clear, the flash shows a warning.
 - `:nodes` (`:no`) and `:jobs` (`:j`) show one full-screen pane. `:overview` (`:ov`) goes back to the Overview. `:q` and `ctrl-c` quit.
+- `q` (k9s): in the Overview, `:nodes` and `:jobs` it quits. In describe and raw JSON it goes back. In help it closes help. While the filter, the `:` prompt, a dialog field or the setup form has the focus, `q` is a letter that you type.
 - In the full-screen `:nodes` view, `enter` on a node opens the full-screen jobs view scoped to that node. In the Jobs pane and in the full-screen `:jobs` view, `o` on a job opens the full-screen nodes view filtered to its hostlist (sofka, spec story 41), with the title `Nodes 2 · of 1234`. `esc` with nothing to clear goes back one step. At the first full-screen view, it goes back to the Overview.
 - `d` describe, `y` raw JSON of the response object (Slurm's stand-in for YAML).
 - `/` filters the focused pane by regex. `! x` inverts (k9s). The regex matches the row's cells joined by spaces, without regard to case (k9s). The rows change as you type. `enter` keeps the filter. `esc` while typing puts back the filter from before. A bad regex shows no rows and the error in the flash.
 - A key that does nothing in the focused pane is a warning in the flash that names the right place, for example `ctrl-d cancels a job · press tab to focus Jobs`, or `x does nothing here · ? lists the keys`. An unknown command is a warning too: `:xyz is not a command · ? lists the commands`.
 - `ctrl-r` refreshes now (k9s, sofka).
-- `?` help. `esc` or `?` closes it. A ticket that adds a pane key adds one entry to `bindings` in `internal/ui/keymap.go`. The entry gives the key, its pane, its help row, its hint and its action, so the key, the hints and Help come from one table. Read-only mode hides the hints and help rows with `writes`.
+- `?` help. `esc`, `?` or `q` closes it. A ticket that adds a pane key adds one entry to `bindings` in `internal/ui/keymap.go`. The entry gives the key, its pane, its help row, its hint and its action, so the key, the hints and Help come from one table. Read-only mode hides the hints and help rows with `writes`.
 - `j`/`k`, arrows, `g` (top), `G` (bottom).
 - The cursor stays on the same node name or job ID across refreshes. If that row is gone, the cursor keeps its index, clamped (sofka).
 

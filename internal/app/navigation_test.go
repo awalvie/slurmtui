@@ -256,3 +256,64 @@ func TestHelpListsTheKeysInGroups(t *testing.T) {
 	r.send(escKey)
 	r.waitGone("┌ Help ")
 }
+
+func TestQQuitsFromTableViews(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{runningJob(1)}})
+	for _, command := range []string{"", "nodes", "jobs"} {
+		t.Run("view "+command, func(t *testing.T) {
+			r := startProvided(t, cluster)
+			r.waitFor("┌ Nodes 1 ")
+			if command != "" {
+				r.fullScreen(command, map[string]string{"nodes": "Nodes", "jobs": "Jobs"}[command])
+			}
+
+			r.send("q")
+
+			if code := r.waitExit(); code != 0 {
+				t.Fatalf("exit code = %d, want 0", code)
+			}
+		})
+	}
+}
+
+func TestQGoesBackFromDetailAndHelpAndTypesInInputs(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
+	r := startProvided(t, cluster)
+	r.waitFor("┌ Nodes 1 ")
+	if !strings.Contains(r.screen(), "q     quit") {
+		t.Fatalf("hint grid has no q quit\n%s", r.screen())
+	}
+
+	r.send("d")
+	r.waitFor("┌ Describe")
+	r.send("q")
+	r.waitGone("┌ Describe")
+	r.send("y")
+	r.waitFor("┌ JSON")
+	r.send("q")
+	r.waitGone("┌ JSON")
+
+	r.send("?")
+	r.waitFor("┌ Help")
+	if !strings.Contains(r.screen(), "q        Quit") {
+		t.Fatalf("help has no q row\n%s", r.screen())
+	}
+	r.send("q")
+	r.waitGone("┌ Help")
+
+	r.send("/q")
+	r.waitFor("/q█")
+	r.send(escKey)
+	r.send(":q")
+	r.waitFor(":q█")
+	r.send(escKey)
+	r.waitGone(":q█")
+
+	r.send("D")
+	r.waitFor("▸ Reason")
+	r.send("q")
+	r.waitFor("▸ Reason  q█")
+	r.send(escKey)
+	r.waitGone("▸ Reason")
+	r.waitFor("┌ Nodes 1 ")
+}
