@@ -16,7 +16,18 @@ var legendItems = []string{"✕ down or failed", "◆ drain", "◐ mixed", "● 
 	"* not responding", "~ powered off", "# powering up", "! power down pending",
 	"% powering down", "$ maintenance", "@ reboot requested", "^ reboot issued"}
 
-func TestHelpIsAFullViewUnderTheHeader(t *testing.T) {
+func (r *run) offsetOf(text string) (int, int) {
+	r.t.Helper()
+	for y, line := range strings.Split(r.screen(), "\n") {
+		if at := strings.Index(line, text); at >= 0 {
+			return len([]rune(line[:at])), y
+		}
+	}
+	r.t.Fatalf("screen has no %q\n%s", text, r.screen())
+	return 0, 0
+}
+
+func TestHelpIsACentredPopUp(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 2 ")
@@ -26,19 +37,36 @@ func TestHelpIsAFullViewUnderTheHeader(t *testing.T) {
 	r.send("?")
 
 	r.waitFor("┌ Help ")
-	r.waitGone("┌ Nodes")
-	top, bottom := r.frameRows("Help")
-	if top != nodesTop || bottom != r.height-2 {
-		t.Fatalf("help frame is rows %d to %d, want %d to %d\n%s", top, bottom, nodesTop, r.height-2, r.screen())
+	if c := r.cellAt(frameLeft, nodesTop); c.Content != "┌" || !isFaintWithoutColour(c.Style) {
+		t.Fatalf("Nodes corner under help = %q %+v, want a faint ┌\n%s", c.Content, c.Style, r.screen())
 	}
-	if s := r.cellAt(frameLeft, top).Style; !isANSI(s.Fg, ansiBlue) {
+	b := r.dialogBox("Help ")
+	r.checkMarginAround(b, nodesTop)
+	r.checkFadedUnder(b)
+	if left, right := b.x, r.width-b.x-b.width; left-right > 1 || right-left > 1 {
+		t.Fatalf("help is at x %d, width %d; want it centred\n%s", b.x, b.width, r.screen())
+	}
+	if s := r.cellAt(b.x, b.y).Style; !isANSI(s.Fg, ansiBlue) {
 		t.Fatalf("help border = %+v, want blue", s)
 	}
-	if s := r.styleOf("Cluster"); s.Attrs&uv.AttrFaint == 0 {
-		t.Fatalf("header label = %+v, want it faint as without help", s)
+	rows := r.dialogRows(b)
+	if rows[0] == "" || rows[len(rows)-1] != "" {
+		t.Fatalf("help rows start with %q and end with %q; want no leading blank row and a blank last row\n%s", rows[0], rows[len(rows)-1], r.screen())
 	}
-	if s := r.styleOf("lamp"); s.Attrs&uv.AttrFaint != 0 {
-		t.Fatalf("header value = %+v, want a header that is not faded", s)
+	if x, _ := r.offsetOf("Nodes pane"); x != b.x+3 {
+		t.Fatalf("group name at column %d, want %d (2 cells inside the border)\n%s", x, b.x+3, r.screen())
+	}
+	if x, _ := r.offsetOf("enter    Show"); x != b.x+5 {
+		t.Fatalf("key row at column %d, want %d (indented once under the group name)\n%s", x, b.x+5, r.screen())
+	}
+	gap := -1
+	for _, pair := range [][2]string{{"j/k ↑/↓", "Move the cursor"}, {"shift-n", "Sort by name"}, {"tab ←/→", "Next field"}, {":ov", "Overview"}, {"ctrl-d", "Cancel the job"}} {
+		kx, ky := r.offsetOf(pair[0])
+		ax, ay := r.offsetOf(pair[1])
+		if ay != ky || (gap >= 0 && ax-kx != gap) {
+			t.Fatalf("action %q starts %d cells after key %q, want %d in every group\n%s", pair[1], ax-kx, pair[0], gap, r.screen())
+		}
+		gap = ax - kx
 	}
 	screen := r.screen()
 	for _, text := range append(append([]string{}, helpGroups...), legendItems...) {
@@ -90,8 +118,9 @@ func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 
 	r.waitFor("┌ Help ")
 	b := r.dialogBox("Help ")
+	r.checkMarginAround(b, 5)
 	rows := r.dialogRows(b)
-	if last := strings.TrimSpace(rows[len(rows)-1]); last != "↓ more" {
+	if last := strings.TrimSpace(rows[len(rows)-2]); last != "↓ more" || rows[len(rows)-1] != "" {
 		t.Fatalf("last help row = %q, want ↓ more\n%s", last, r.screen())
 	}
 	if s := r.styleOf("↓ more"); !isANSI(s.Fg, ansiCyan) {

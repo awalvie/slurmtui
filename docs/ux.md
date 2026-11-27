@@ -47,7 +47,7 @@ The start screen is the Overview. It has four bands, from top to bottom: the hea
 - Jobs pane: under the Nodes pane. It takes all other rows of the body.
 - Bottom line: only the flash and the freshness, at the right. While the user types a filter or a command, the prompt is at the left (Bottom line).
 - At 30 rows or more, one blank row is under the header and one blank row is between the two panes. Below 30 rows, there are no blank rows. The 80x24 screen thus has no blank row.
-- `:nodes` and `:jobs` show one pane at full body height, with no Overview split (Navigation). Describe, raw JSON and help also use the full body (Describe, raw JSON and help).
+- `:nodes` and `:jobs` show one pane at full body height, with no Overview split (Navigation). Describe and raw JSON also use the full body. Help is a pop-up (Describe, raw JSON and help).
 
 ## Visual system
 
@@ -282,11 +282,11 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - Describe: one row for each field. The key is in `accent`, padded to 16 cells. The value is in `text`. An empty value is `—` in `dim`. The state value has its glyph and its class colour.
 - A group name (`CPU`, `Memory`, `Times`, `Files`) is in `key`, with a blank row above it.
 - Raw JSON: keys in `accent`, strings in `ok`, numbers, `true` and `false` in `warn`, `null`, brackets, colons and commas in `dim`. Indent is 2 spaces.
-- Help is a full view, as in k9s. The header stays. The body is one frame in `focus` with the title `Help`. It has one group for each place: `Nodes pane`, `Jobs pane`, `Both panes`, `Dialogs`, `Describe, JSON`, `Commands`. The group name is in `key`. Each row is the key in `key`, padded to 9 cells, then the action in `text`. The groups go into 3 columns, 2 columns or 1 column: as many as the width holds. `esc` or `?` goes back to the same view and cursor. The bottom line shows `j/k scroll · esc back`.
-- After the key groups, help shows the group `Legend` in `dim`, with items separated by ` · ` and packed into the frame width, under the columns:
+- Help is a pop-up in the centre of the body, with the dialog fade and margin (Dialogs). Its frame is in `focus` with the title `Help`. It is as wide as its content plus 2 cells at the right, but never wider than the screen minus 2. It has one group for each place: `Nodes pane`, `Jobs pane`, `Both panes`, `Dialogs`, `Describe, JSON`, `Commands`. The group name is in `key`, 2 cells inside the border. Each key row is indented 2 more cells: the key in `key`, padded to the widest key of all groups plus 2, then the action in `text`. Thus all groups have the same key column. The groups go into 3 columns, 2 columns or 1 column: as many as the width holds. There is no blank row above the first group, and one blank row above the bottom border. `esc` or `?` goes back to the same view and cursor. The bottom line shows `j/k scroll · esc back`.
+- After the key groups, help shows the group `Legend` in `dim`, with items separated by ` · ` and packed into the width of the columns, under the columns:
   - The glyphs: `✕ down or failed · ◆ drain · ◐ mixed · ● allocated · ○ idle · ◌ other`, and `◷ pending · ▶ running · ◼ completing · ✓ completed`.
   - The state suffixes: `* not responding · ~ powered off · # powering up · ! power down pending · % powering down · $ maintenance · @ reboot requested · ^ reboot issued`.
-- These views do not wrap. A line that is too long is cut with `…`. `j` and `k` scroll. When help has more rows below, its last visible row is `↓ more` in `accent`.
+- These views do not wrap. A line that is too long is cut with `…`. `j` and `k` scroll. Help is never taller than the body minus 2. When help has more rows below, its last visible row above the blank row is `↓ more` in `accent`.
 
 ## States
 

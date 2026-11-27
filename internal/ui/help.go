@@ -39,15 +39,15 @@ var legend = []string{
 }
 
 const (
-	helpKeyWidth    = 9
-	helpGroupInset  = "  "
-	helpRowInset    = "    "
-	helpColumnGap   = 4
-	helpMaxColumns  = 3
-	helpMoreMarker  = "↓ more"
-	legendHeading   = "Legend"
-	helpPaneTitle   = "Help"
-	helpFrameInside = 2
+	helpKeyGap     = 2
+	helpGroupInset = dialogBodyInset
+	helpRowInset   = dialogBodyInset + dialogBodyInset
+	helpRightInset = 2
+	helpColumnGap  = 4
+	helpMaxColumns = 3
+	helpMoreMarker = "↓ more"
+	legendHeading  = "Legend"
+	helpPaneTitle  = "Help"
 )
 
 func packed(items []string, width int) []string {
@@ -68,14 +68,21 @@ func packed(items []string, width int) []string {
 }
 
 func groupBlocks(readOnly bool) [][]string {
+	groups := helpGroupsFromBindings()
+	keyWidth := 0
+	for _, g := range groups {
+		for _, k := range g.keys {
+			keyWidth = max(keyWidth, ansi.StringWidth(k.key)+helpKeyGap)
+		}
+	}
 	var blocks [][]string
-	for _, g := range helpGroupsFromBindings() {
+	for _, g := range groups {
 		block := []string{helpGroupInset + keyStyle.Render(g.name)}
 		for _, k := range g.keys {
 			if k.writes && readOnly {
 				continue
 			}
-			block = append(block, helpRowInset+keyStyle.Render(fitLeft(k.key, helpKeyWidth))+textStyle.Render(k.action))
+			block = append(block, helpRowInset+keyStyle.Render(fitLeft(k.key, keyWidth))+textStyle.Render(k.action))
 		}
 		blocks = append(blocks, append(block, ""))
 	}
@@ -103,19 +110,19 @@ func columnsOf(blocks [][]string, count int) [][]string {
 	}
 }
 
-func helpLines(readOnly bool, inner int) []string {
+func helpLines(readOnly bool, room int) []string {
 	blocks := groupBlocks(readOnly)
 	columnWidth := 0
 	for _, b := range blocks {
 		columnWidth = max(columnWidth, widest(b)+helpColumnGap)
 	}
-	count := max(min((inner+helpColumnGap)/columnWidth, helpMaxColumns), 1)
+	count := max(min((room+helpColumnGap)/columnWidth, helpMaxColumns), 1)
 	columns := columnsOf(blocks, count)
 	rows := 0
 	for _, c := range columns {
 		rows = max(rows, len(c))
 	}
-	lines := []string{""}
+	var lines []string
 	for r := range rows {
 		line := ""
 		for i, c := range columns {
@@ -130,34 +137,39 @@ func helpLines(readOnly bool, inner int) []string {
 		}
 		lines = append(lines, line)
 	}
+	width := min(widest(lines), room)
 	lines = append(lines, helpGroupInset+keyStyle.Render(legendHeading))
-	for _, l := range packed(legend, max(inner-len(helpRowInset)-1, 1)) {
+	for _, l := range packed(legend, max(width-len(helpRowInset), 1)) {
 		lines = append(lines, helpRowInset+dimStyle.Render(l))
 	}
 	return lines
 }
 
-func (m Model) helpRoom() int {
-	return max(m.bodyHeight()-boxBorders, 1)
+func (m Model) helpLayout() ([]string, int, int) {
+	width, _ := m.size()
+	room := width - 2*popupMargin - boxBorders - helpRightInset
+	lines := helpLines(m.session.ReadOnly, room)
+	rows := max(m.bodyHeight()-2*popupMargin-boxBorders-1, 1)
+	return lines, min(rows, len(lines)), min(widest(lines)+helpRightInset+boxBorders, width-2*popupMargin)
 }
 
 func (m Model) helpKey(key string) Model {
-	width, _ := m.size()
-	return m.scrollKey(key, len(helpLines(m.session.ReadOnly, width-2-helpFrameInside)), m.helpRoom())
+	lines, rows, _ := m.helpLayout()
+	return m.scrollKey(key, len(lines), rows)
 }
 
-func (m Model) helpPane(width, height int) []string {
-	lines := helpLines(m.session.ReadOnly, width-helpFrameInside)
-	room := min(m.helpRoom(), len(lines))
-	top := m.scrollTop(len(lines), room)
-	shown := append([]string{}, lines[top:top+room]...)
-	if top+room < len(lines) {
-		shown[room-1] = helpGroupInset + accentStyle.Render(helpMoreMarker)
+func (m Model) helpBox() []string {
+	lines, rows, width := m.helpLayout()
+	top := m.scrollTop(len(lines), rows)
+	shown := append([]string{}, lines[top:top+rows]...)
+	if top+rows < len(lines) {
+		shown[rows-1] = helpGroupInset + accentStyle.Render(helpMoreMarker)
 	}
+	shown = append(shown, "")
 	return box{
 		title:   titleStyle.Render(helpPaneTitle),
 		width:   width,
-		height:  height,
+		height:  len(shown) + boxBorders,
 		focused: true,
 		lines:   shown,
 	}.render()
