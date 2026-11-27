@@ -53,7 +53,7 @@ func overlaid(lines []string, box []string, width, bodyTop, bodyHeight int) stri
 func overlaidAt(lines []string, box []string, width, bodyTop, bodyHeight, row int) string {
 	height := len(lines)
 	screen := append(fade(lines[:height-bottomLineHeight]), lines[height-bottomLineHeight:]...)
-	box = margined(clamped(box, bodyHeight-2*popupMargin))
+	box = margined(box)
 	x := max((width-widest(box))/2, 0)
 	y := bodyTop + max(min(row-popupMargin, bodyHeight-len(box)), 0)
 	return lipgloss.NewCompositor(

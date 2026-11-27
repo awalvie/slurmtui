@@ -9,16 +9,6 @@ const (
 	paneChrome       = 3
 )
 
-func (m Model) say(level flashLevel, text string) Model {
-	m.flash = &flash{text: text, level: level, at: m.clock.Now()}
-	return m
-}
-
-func (m Model) switchPane() Model {
-	m.focus = map[view]view{nodesView: jobsView, jobsView: nodesView}[m.focus]
-	return m
-}
-
 func (m Model) scopeJobs() Model {
 	r, ok := m.selectedRow()
 	if !ok {

@@ -194,15 +194,6 @@ func (m Model) timeLimit(j slurm.Job) (slurm.TimeLimit, error) {
 	return p.JobTimeLimit(), nil
 }
 
-func (m Model) timeLeft(j slurm.Job, now time.Time) (time.Duration, bool, error) {
-	limit, err := m.timeLimit(j)
-	if err != nil {
-		return 0, false, err
-	}
-	left, ok := j.TimeLeft(limit, now)
-	return left, ok, nil
-}
-
 func timeLeftText(j slurm.Job, limit slurm.TimeLimit, now time.Time) string {
 	if limit.Unlimited && j.State.CanRunOut() {
 		return "UNLIMITED"
@@ -492,4 +483,76 @@ func (p pane) rowLine(r row, l layout, atCursor bool, inner int) string {
 		return lead + cursorStyle.Render(fitLeft(strings.Join(parts, columnGap), inner-1))
 	}
 	return lead + strings.Join(parts, columnGap)
+}
+
+func nodeProblemFacts(nodes []slurm.Node) []string {
+	var draining, drained, down int
+	for _, n := range nodes {
+		switch n.State.Class() {
+		case slurm.NodeDown:
+			down++
+		case slurm.NodeDrain:
+			if n.State.Draining() {
+				draining++
+			} else {
+				drained++
+			}
+		}
+	}
+	var facts []string
+	add := func(count int, class slurm.NodeClass, label string) {
+		if count > 0 {
+			c := nodeClasses[class]
+			facts = append(facts, c.style.Bold(true).Render(fmt.Sprintf("%s %d %s", c.glyph, count, label)))
+		}
+	}
+	add(draining, slurm.NodeDrain, "draining")
+	add(drained, slurm.NodeDrain, "drained")
+	add(down, slurm.NodeDown, "down")
+	return facts
+}
+
+func percentOf(used, total int64) string {
+	return fmt.Sprintf("%d%%", used*100/total)
+}
+
+func usableAllocation(nodes []slurm.Node) string {
+	var allocCPUs, cpus, allocMem, mem int64
+	for _, n := range nodes {
+		if !n.Usable() {
+			continue
+		}
+		allocCPUs += int64(n.AllocCPUs)
+		cpus += int64(n.CPUs)
+		allocMem += n.AllocMemory
+		mem += n.RealMemory
+	}
+	var parts []string
+	if cpus > 0 {
+		parts = append(parts, "cpu "+percentOf(allocCPUs, cpus))
+	}
+	if mem > 0 {
+		parts = append(parts, "mem "+percentOf(allocMem, mem))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return dimStyle.Render(strings.Join(parts, factSeparator))
+}
+
+func jobGroupFacts(rows []row) []string {
+	counts := map[int]int{}
+	for _, r := range rows {
+		counts[r.group]++
+	}
+	var facts []string
+	for _, g := range []struct {
+		group int
+		word  string
+	}{{runningGroup, "running"}, {pendingGroup, "pending"}} {
+		if counts[g.group] > 0 {
+			facts = append(facts, dimStyle.Render(fmt.Sprintf("%d %s", counts[g.group], g.word)))
+		}
+	}
+	return facts
 }

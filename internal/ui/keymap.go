@@ -2,6 +2,7 @@ package ui
 
 import (
 	"slices"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
 )
@@ -136,8 +137,7 @@ func (m Model) otherPaneBinding(key string) (binding, bool) {
 	if m.top().kind != overviewView {
 		return binding{}, false
 	}
-	other := map[view]view{nodesView: jobsView, jobsView: nodesView}[m.focus]
-	b, ok := bindingFor(key, other)
+	b, ok := bindingFor(key, otherPane(m.focus))
 	if !ok || b.otherPane == "" {
 		return binding{}, false
 	}
@@ -305,5 +305,30 @@ func (m Model) startFilter() Model {
 	f := m.current()
 	m.filterBefore = f.filter
 	f.filter = ""
+	return m.withCurrent(f)
+}
+
+func (m Model) unknownKey(key string) Model {
+	return m.say(flashWarning, keyName(key)+" does nothing here · ? lists the keys")
+}
+
+func keyName(key string) string {
+	return strings.ReplaceAll(key, "+", "-")
+}
+
+func (m Model) filterKey(msg tea.KeyPressMsg) Model {
+	f := m.current()
+	switch msg.String() {
+	case "enter":
+		m.filtering = false
+		return m
+	case "esc":
+		m.filtering = false
+		f.filter = m.filterBefore
+	case "backspace":
+		f.filter = dropLastRune(f.filter)
+	default:
+		f.filter += msg.Text
+	}
 	return m.withCurrent(f)
 }

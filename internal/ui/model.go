@@ -91,7 +91,7 @@ func (m Model) refresh() (Model, tea.Cmd) {
 		return m, nil
 	}
 	m.fetching = true
-	return m, m.fetch
+	return m, fetch(m.source)
 }
 
 type snapshotMsg struct {
@@ -101,25 +101,27 @@ type snapshotMsg struct {
 	err        error
 }
 
-func (m Model) fetch() tea.Msg {
-	ctx := context.Background()
-	nodes, err := m.source.Nodes(ctx)
-	if err != nil {
-		return snapshotMsg{err: err}
+func fetch(source Source) tea.Cmd {
+	return func() tea.Msg {
+		ctx := context.Background()
+		nodes, err := source.Nodes(ctx)
+		if err != nil {
+			return snapshotMsg{err: err}
+		}
+		jobs, err := source.Jobs(ctx)
+		if err != nil {
+			return snapshotMsg{err: err}
+		}
+		partitions, err := source.Partitions(ctx)
+		if err != nil {
+			return snapshotMsg{err: err}
+		}
+		return snapshotMsg{nodes: nodes, jobs: jobs, partitions: partitions}
 	}
-	jobs, err := m.source.Jobs(ctx)
-	if err != nil {
-		return snapshotMsg{err: err}
-	}
-	partitions, err := m.source.Partitions(ctx)
-	if err != nil {
-		return snapshotMsg{err: err}
-	}
-	return snapshotMsg{nodes: nodes, jobs: jobs, partitions: partitions}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.fetch, m.after(m.interval, refreshTickMsg{}), m.after(time.Second, footerTickMsg{}))
+	return tea.Batch(fetch(m.source), m.after(m.interval, refreshTickMsg{}), m.after(time.Second, footerTickMsg{}))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -273,4 +275,16 @@ func (m Model) View() tea.View {
 		screen = overlaid(lines, m.helpBox(), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	}
 	return altView(screen)
+}
+
+func (m Model) body(width, height int) ([]string, error) {
+	f := m.top()
+	if isDetail(f.kind) {
+		return m.detailPane(f, width, height), nil
+	}
+	if f.kind == overviewView {
+		return m.overview(width, height)
+	}
+	t := m.table(f)
+	return m.paneOf(f, t, true).render(width, height), t.err
 }

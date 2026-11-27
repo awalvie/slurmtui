@@ -73,6 +73,18 @@ func (m Model) withCurrent(f frame) Model {
 	return m
 }
 
+func otherPane(v view) view {
+	if v == jobsView {
+		return nodesView
+	}
+	return jobsView
+}
+
+func (m Model) switchPane() Model {
+	m.focus = otherPane(m.focus)
+	return m
+}
+
 func (m Model) show(v view) Model {
 	m.stack = []frame{{kind: overviewView}}
 	if v != overviewView {

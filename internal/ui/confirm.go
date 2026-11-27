@@ -130,10 +130,6 @@ func (c confirm) typed(text string) confirm {
 	return c
 }
 
-func buttonIndex[F comparable](focus F, order ...F) int {
-	return slices.Index(order, focus)
-}
-
 func buttons(labels []string, focused int) string {
 	parts := make([]string, len(labels))
 	for i, l := range labels {
@@ -190,7 +186,7 @@ func (c confirm) lines(width int, jobs ...[]string) []string {
 	if c.spec.field != nil {
 		lines = append(lines, "", c.field())
 	}
-	lines = append(lines, "", centred(buttons([]string{c.spec.action, keepButton}, buttonIndex(c.focus, focusAction, focusKeep)), width-2))
+	lines = append(lines, "", centred(buttons([]string{c.spec.action, keepButton}, slices.Index([]confirmFocus{focusAction, focusKeep}, c.focus)), width-2))
 	if c.problem != "" {
 		lines = append(lines, "", dialogBodyInset+badStyle.Render(c.problem))
 	}

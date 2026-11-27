@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -238,7 +239,7 @@ func (m Setup) formLines(width int) []string {
 		}
 		lines = append(lines, setupInset+mark+label+setupLabelGap+shown)
 	}
-	lines = append(lines, "", centred(buttons([]string{"Test and save", "Quit"}, buttonIndex(m.focus, testButton, quitButton)), width-2))
+	lines = append(lines, "", centred(buttons([]string{"Test and save", "Quit"}, slices.Index([]setupField{testButton, quitButton}, m.focus)), width-2))
 	var notes []string
 	if m.draft.Kind == PastedToken {
 		notes = append(notes, dimStyle.Render(pastedTokenNote))
@@ -278,5 +279,5 @@ func (m Setup) View() tea.View {
 	plain.err, plain.testing, plain.draft.Kind = nil, false, KeyFileToken
 	body := height - bottomLineHeight
 	top := max((body-len(plain.formLines(formWidth))-boxBorders)/2, popupMargin)
-	return altView(overlaidAt(screen, form, width, 0, body, top))
+	return altView(overlaidAt(screen, clamped(form, body-2*popupMargin), width, 0, body, top))
 }
