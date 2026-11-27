@@ -13,7 +13,7 @@ The harness is in `internal/app/harness_test.go`. The fake slurmrestd is in `int
 - `selected` finds the row with `▌` in the lead cell (column 2) and reverse video in column 3, in either pane.
 - slurmtui starts on the Overview, so both frames are on the screen. To test a full-screen view, call `fullScreen("jobs", "Jobs")`: it sends the command and waits until only that frame shows. Do not wait for a title only, because the Overview already shows it.
 - A STATE cell is the glyph and the label. `stateLabel` returns only the label.
-- Dialogs, help and the setup form: `dialogBox(title)` finds the frame (x, y, width, height) and `dialogRows` reads its inner rows. `waitButton(label)` waits until that button has the focus (reverse). `styleOf(text)` gives the style of the first cell of a text on the screen.
+- Dialogs, help and the setup form: `dialogBox(title)` finds the frame (x, y, width, height) and `dialogRows` reads its inner rows. `waitButton(label)` waits until that button has the focus (reverse). `styleOf(text)` gives the style of the first cell of a text on the screen. `offsetOf(text)` gives its column and row. `checkMarginAround(box, bodyTop)` checks the blank 1-cell margin of a pop-up and that the pop-up stays in the body. `checkFadedUnder(box)` checks that all other cells above the bottom line are faint and have no colour.
 - Read the style of a cell with `cellAt(x, y).Style`. Check a colour with `isANSI(fg, index)`. The default colour is a nil `Fg`. Use ANSI index literals in tests, not the constants of `internal/ui`.
 - `startSized` starts slurmtui in a terminal of a given size. The default is 160x50.
 - `run.output` holds all bytes that slurmtui wrote. `TestOutputUsesOnlyANSIColours` fails on a 256-colour or truecolor sequence.
