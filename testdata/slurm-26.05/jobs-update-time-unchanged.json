@@ -1,0 +1,43 @@
+{
+  "jobs": [],
+  "last_backfill": {
+    "set": true,
+    "infinite": false,
+    "number": 0
+  },
+  "last_update": {
+    "set": true,
+    "infinite": false,
+    "number": 0
+  },
+  "meta": {
+    "plugin": {
+      "type": "openapi\/slurmctld",
+      "name": "Slurm OpenAPI slurmctld",
+      "data_parser": "data_parser\/v0.0.45",
+      "accounting_storage": "accounting_storage\/slurmdbd"
+    },
+    "client": {
+      "source": "127.0.0.1:6820(fd:9)",
+      "user": "root",
+      "group": "root"
+    },
+    "command": [],
+    "slurm": {
+      "version": {
+        "major": "26",
+        "micro": "5",
+        "minor": "05"
+      },
+      "release": "26.05.5",
+      "cluster": "slurmtui"
+    }
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "description": "No job changes since update_time[1795702754]=2026-11-26T15:19:14",
+      "source": "op_handler_jobs"
+    }
+  ]
+}

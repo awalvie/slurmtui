@@ -1,0 +1,477 @@
+{
+  "nodes": [
+    {
+      "architecture": "",
+      "burstbuffer_network_address": "",
+      "boards": 1,
+      "boot_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "tls_cert_last_renewal": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "cert_flags": [],
+      "cluster_name": "",
+      "cores": 1,
+      "specialized_cores": 0,
+      "cpu_binding": 0,
+      "cpu_load": 0,
+      "free_mem": {
+        "set": false,
+        "infinite": false,
+        "number": 0
+      },
+      "cpus": 8,
+      "effective_cpus": 8,
+      "specialized_cpus": "",
+      "energy": {
+        "average_watts": 0,
+        "base_consumed_energy": 0,
+        "consumed_energy": 0,
+        "current_watts": {
+          "set": true,
+          "infinite": false,
+          "number": 0
+        },
+        "previous_consumed_energy": 0,
+        "last_collected": 0
+      },
+      "extra": "",
+      "features": [],
+      "active_features": [],
+      "gpu_spec": "",
+      "gres": "",
+      "gres_drained": "N\/A",
+      "gres_used": "",
+      "instance_id": "",
+      "instance_type": "",
+      "last_busy": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "mcs_label": "",
+      "specialized_memory": 0,
+      "name": "ghost1",
+      "next_state_after_reboot": [
+        "INVALID"
+      ],
+      "address": "192.0.2.1",
+      "hostname": "ghost1",
+      "state": [
+        "UNKNOWN",
+        "DRAIN",
+        "NOT_RESPONDING"
+      ],
+      "operating_system": "",
+      "owner": "",
+      "partitions": [
+        "debug"
+      ],
+      "port": 6818,
+      "real_memory": 16000,
+      "res_cores_per_gpu": 0,
+      "comment": "",
+      "reason": "test drain",
+      "reason_changed_at": {
+        "set": true,
+        "infinite": false,
+        "number": 1795702720
+      },
+      "reason_set_by_user": "root",
+      "resume_after": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reservation": "",
+      "suspend_time": {
+        "set": false,
+        "infinite": true,
+        "number": 0
+      },
+      "alloc_memory": 0,
+      "alloc_cpus": 0,
+      "alloc_idle_cpus": 8,
+      "tres_used": "",
+      "slurmd_start_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "sockets": 8,
+      "threads": 1,
+      "temporary_disk": 0,
+      "weight": 1,
+      "topology": "",
+      "tres": "cpu=8,mem=16000M,billing=8",
+      "version": ""
+    },
+    {
+      "architecture": "",
+      "burstbuffer_network_address": "",
+      "boards": 1,
+      "boot_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "tls_cert_last_renewal": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "cert_flags": [],
+      "cluster_name": "",
+      "cores": 1,
+      "specialized_cores": 0,
+      "cpu_binding": 0,
+      "cpu_load": 0,
+      "free_mem": {
+        "set": false,
+        "infinite": false,
+        "number": 0
+      },
+      "cpus": 8,
+      "effective_cpus": 8,
+      "specialized_cpus": "",
+      "energy": {
+        "average_watts": 0,
+        "base_consumed_energy": 0,
+        "consumed_energy": 0,
+        "current_watts": {
+          "set": true,
+          "infinite": false,
+          "number": 0
+        },
+        "previous_consumed_energy": 0,
+        "last_collected": 0
+      },
+      "extra": "",
+      "features": [],
+      "active_features": [],
+      "gpu_spec": "",
+      "gres": "",
+      "gres_drained": "N\/A",
+      "gres_used": "",
+      "instance_id": "",
+      "instance_type": "",
+      "last_busy": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "mcs_label": "",
+      "specialized_memory": 0,
+      "name": "ghost2",
+      "next_state_after_reboot": [
+        "INVALID"
+      ],
+      "address": "192.0.2.2",
+      "hostname": "ghost2",
+      "state": [
+        "UNKNOWN",
+        "NOT_RESPONDING"
+      ],
+      "operating_system": "",
+      "owner": "",
+      "partitions": [
+        "debug",
+        "gpu"
+      ],
+      "port": 6818,
+      "real_memory": 16000,
+      "res_cores_per_gpu": 0,
+      "comment": "",
+      "reason": "",
+      "reason_changed_at": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reason_set_by_user": "",
+      "resume_after": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reservation": "",
+      "suspend_time": {
+        "set": false,
+        "infinite": true,
+        "number": 0
+      },
+      "alloc_memory": 0,
+      "alloc_cpus": 0,
+      "alloc_idle_cpus": 8,
+      "tres_used": "",
+      "slurmd_start_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "sockets": 8,
+      "threads": 1,
+      "temporary_disk": 0,
+      "weight": 1,
+      "topology": "",
+      "tres": "cpu=8,mem=16000M,billing=8",
+      "version": ""
+    },
+    {
+      "architecture": "",
+      "burstbuffer_network_address": "",
+      "boards": 1,
+      "boot_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "tls_cert_last_renewal": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "cert_flags": [],
+      "cluster_name": "",
+      "cores": 1,
+      "specialized_cores": 0,
+      "cpu_binding": 0,
+      "cpu_load": 0,
+      "free_mem": {
+        "set": false,
+        "infinite": false,
+        "number": 0
+      },
+      "cpus": 8,
+      "effective_cpus": 8,
+      "specialized_cpus": "",
+      "energy": {
+        "average_watts": 0,
+        "base_consumed_energy": 0,
+        "consumed_energy": 0,
+        "current_watts": {
+          "set": true,
+          "infinite": false,
+          "number": 0
+        },
+        "previous_consumed_energy": 0,
+        "last_collected": 0
+      },
+      "extra": "",
+      "features": [],
+      "active_features": [],
+      "gpu_spec": "",
+      "gres": "",
+      "gres_drained": "N\/A",
+      "gres_used": "",
+      "instance_id": "",
+      "instance_type": "",
+      "last_busy": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "mcs_label": "",
+      "specialized_memory": 0,
+      "name": "ghost3",
+      "next_state_after_reboot": [
+        "INVALID"
+      ],
+      "address": "192.0.2.3",
+      "hostname": "ghost3",
+      "state": [
+        "UNKNOWN",
+        "NOT_RESPONDING"
+      ],
+      "operating_system": "",
+      "owner": "",
+      "partitions": [
+        "debug",
+        "gpu"
+      ],
+      "port": 6818,
+      "real_memory": 16000,
+      "res_cores_per_gpu": 0,
+      "comment": "",
+      "reason": "",
+      "reason_changed_at": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reason_set_by_user": "",
+      "resume_after": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reservation": "",
+      "suspend_time": {
+        "set": false,
+        "infinite": true,
+        "number": 0
+      },
+      "alloc_memory": 0,
+      "alloc_cpus": 0,
+      "alloc_idle_cpus": 8,
+      "tres_used": "",
+      "slurmd_start_time": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "sockets": 8,
+      "threads": 1,
+      "temporary_disk": 0,
+      "weight": 1,
+      "topology": "",
+      "tres": "cpu=8,mem=16000M,billing=8",
+      "version": ""
+    },
+    {
+      "architecture": "x86_64",
+      "burstbuffer_network_address": "",
+      "boards": 1,
+      "boot_time": {
+        "set": true,
+        "infinite": false,
+        "number": 1795702609
+      },
+      "tls_cert_last_renewal": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "cert_flags": [],
+      "cluster_name": "",
+      "cores": 1,
+      "specialized_cores": 0,
+      "cpu_binding": 0,
+      "cpu_load": 16,
+      "free_mem": {
+        "set": true,
+        "infinite": false,
+        "number": 1753
+      },
+      "cpus": 4,
+      "effective_cpus": 4,
+      "specialized_cpus": "",
+      "energy": {
+        "average_watts": 0,
+        "base_consumed_energy": 0,
+        "consumed_energy": 0,
+        "current_watts": {
+          "set": true,
+          "infinite": false,
+          "number": 0
+        },
+        "previous_consumed_energy": 0,
+        "last_collected": 0
+      },
+      "extra": "",
+      "features": [],
+      "active_features": [],
+      "gpu_spec": "",
+      "gres": "",
+      "gres_drained": "N\/A",
+      "gres_used": "",
+      "instance_id": "",
+      "instance_type": "",
+      "last_busy": {
+        "set": true,
+        "infinite": false,
+        "number": 1795702714
+      },
+      "mcs_label": "",
+      "specialized_memory": 0,
+      "name": "lima-slurmtui",
+      "next_state_after_reboot": [
+        "INVALID"
+      ],
+      "address": "lima-slurmtui",
+      "hostname": "lima-slurmtui",
+      "state": [
+        "ALLOCATED"
+      ],
+      "operating_system": "Linux 6.12.95+deb13-cloud-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.95-1 (2026-07-04)",
+      "owner": "",
+      "partitions": [
+        "debug",
+        "gpu"
+      ],
+      "port": 6818,
+      "real_memory": 3403,
+      "res_cores_per_gpu": 0,
+      "comment": "",
+      "reason": "",
+      "reason_changed_at": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reason_set_by_user": "",
+      "resume_after": {
+        "set": true,
+        "infinite": false,
+        "number": 0
+      },
+      "reservation": "",
+      "suspend_time": {
+        "set": false,
+        "infinite": true,
+        "number": 0
+      },
+      "alloc_memory": 768,
+      "alloc_cpus": 4,
+      "alloc_idle_cpus": 0,
+      "tres_used": "cpu=4,mem=768M",
+      "slurmd_start_time": {
+        "set": true,
+        "infinite": false,
+        "number": 1795702714
+      },
+      "sockets": 4,
+      "threads": 1,
+      "temporary_disk": 0,
+      "weight": 1,
+      "topology": "",
+      "tres": "cpu=4,mem=3403M,billing=4",
+      "version": "26.05.5"
+    }
+  ],
+  "last_update": {
+    "set": true,
+    "infinite": false,
+    "number": 1795702754
+  },
+  "meta": {
+    "plugin": {
+      "type": "openapi\/slurmctld",
+      "name": "Slurm OpenAPI slurmctld",
+      "data_parser": "data_parser\/v0.0.45",
+      "accounting_storage": "accounting_storage\/slurmdbd"
+    },
+    "client": {
+      "source": "127.0.0.1:6820(fd:9)",
+      "user": "root",
+      "group": "root"
+    },
+    "command": [],
+    "slurm": {
+      "version": {
+        "major": "26",
+        "micro": "5",
+        "minor": "05"
+      },
+      "release": "26.05.5",
+      "cluster": "slurmtui"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
