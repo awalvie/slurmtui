@@ -1,0 +1,40 @@
+name: slurmtui
+x-slurm: &slurm
+  image: slurmtui-slurm:latest
+  volumes:
+    - etc:/etc/slurm
+    - ./:/conf:ro
+  depends_on:
+    init:
+      condition: service_completed_successfully
+services:
+  init:
+    image: slurmtui-slurm:latest
+    command: ["init"]
+    volumes:
+      - etc:/etc/slurm
+      - ./:/conf:ro
+  ctld:
+    <<: *slurm
+    hostname: ctld
+    command: ["ctld"]
+  c1:
+    <<: *slurm
+    hostname: c1
+    command: ["node"]
+  c2:
+    <<: *slurm
+    hostname: c2
+    command: ["node"]
+  c3:
+    <<: *slurm
+    hostname: c3
+    command: ["node"]
+  restd:
+    <<: *slurm
+    hostname: restd
+    command: ["restd"]
+    ports:
+      - "127.0.0.1:6820:6820"
+volumes:
+  etc:
