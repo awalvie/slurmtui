@@ -291,35 +291,33 @@ func TestJobsTitleCountsRunningAndPendingRows(t *testing.T) {
 	r.waitFor("┌ Jobs 1 · 1 running · /^1 ─")
 }
 
-func TestStateChangeKeepsColumnPositions(t *testing.T) {
+func TestStateIsAsWideAsTheWidestStateInThePane(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 2 ")
-	positions := func() map[string]int {
-		row := r.rowByName("n2")
-		out := map[string]int{}
-		for _, c := range []string{"NAME", "CPU", "MEM(GiB)"} {
-			out[c] = r.columnX(row, c)
+	cpuAfterState := func() int {
+		columns, _ := r.tableLayoutAt(r.mustFrameTop("Nodes"))
+		at := map[string]int{}
+		for _, c := range columns {
+			at[c.name] = c.start
 		}
-		return out
+		return at["CPU"] - at["STATE"]
 	}
-	before := positions()
+	if got, want := cpuAfterState(), len([]rune("STATE ↑"))+2; got != want {
+		t.Fatalf("CPU starts %d cells after STATE with idle nodes, want %d\nscreen:\n%s", got, want, r.screen())
+	}
 
 	drained := nodeIn("n1", "IDLE", "DRAIN")
 	drained.Reason = "x"
 	cluster.SetNodes([]fakeslurm.Node{drained, idle("n2")})
 	r.advance(5 * time.Second)
 	r.waitFor("◆ drained")
-
-	after := positions()
-	for c, x := range before {
-		if after[c] != x {
-			t.Errorf("%s moved from x=%d to x=%d after a state change", c, x, after[c])
-		}
+	if got, want := cpuAfterState(), len([]rune("◆ drained"))+2; got != want {
+		t.Fatalf("CPU starts %d cells after STATE with a drained node, want %d\nscreen:\n%s", got, want, r.screen())
 	}
 }
 
-func TestIDIsAsWideAsTheIDsOnTheScreen(t *testing.T) {
+func TestIDIsAsWideAsTheWidestIDInThePane(t *testing.T) {
 	var jobs []fakeslurm.Job
 	for i := range int32(70) {
 		id := 1069 - i
@@ -338,8 +336,8 @@ func TestIDIsAsWideAsTheIDsOnTheScreen(t *testing.T) {
 		header := []rune(lines[r.frameTop("Jobs")+1])
 		return strings.Index(string(header[gridLeft:]), "PARTITION") - 2
 	}
-	if got := idWidth(); got != 4 {
-		t.Fatalf("ID width with the array job off the screen = %d, want 4\nscreen:\n%s", got, r.screen())
+	if got := idWidth(); got != 14 {
+		t.Fatalf("ID width with the array job off the screen = %d, want 14\nscreen:\n%s", got, r.screen())
 	}
 
 	r.send("G")

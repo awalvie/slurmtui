@@ -41,13 +41,3 @@ func jobStateCell(s slurm.JobState) cell {
 	c := jobClasses[s.Class()]
 	return cell{text: c.cell(s.Label()), style: c.style}
 }
-
-const glyphAndSpace = 2
-
-func nodeStateWidth() int {
-	return glyphAndSpace + slurm.WidestNodeLabel()
-}
-
-func jobStateWidth() int {
-	return glyphAndSpace + slurm.WidestJobLabel()
-}

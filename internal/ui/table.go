@@ -116,7 +116,7 @@ var nodeTable = tableSpec{
 	right:     func(m Model) string { return usableAllocation(m.nodes) },
 	columns: []column{
 		{name: "NAME", kind: fitColumn, size: 20},
-		{name: "STATE", kind: fixedColumn, size: nodeStateWidth()},
+		{name: "STATE", kind: fitColumn},
 		{name: "CPU", kind: fitColumn, right: true},
 		{name: "MEM(GiB)", kind: fitColumn, right: true},
 		{name: "GRES", kind: fitColumn, right: true},
@@ -137,11 +137,11 @@ var jobTable = tableSpec{
 	facts:     func(_ Model, rows []row) []string { return jobGroupFacts(rows) },
 	right:     func(Model) string { return "" },
 	columns: []column{
-		{name: "ID", kind: fitColumn, fromWindow: true},
+		{name: "ID", kind: fitColumn},
 		{name: "PARTITION", kind: fitColumn, size: 10},
 		{name: "NAME", kind: flexColumn, size: 1},
 		{name: "USER", kind: fitColumn, size: 12},
-		{name: "STATE", kind: fixedColumn, size: jobStateWidth()},
+		{name: "STATE", kind: fitColumn},
 		{name: "TIME", kind: fitColumn, right: true},
 		{name: "TIME_LEFT", kind: fitColumn, right: true},
 		{name: "NODES", kind: fitColumn, right: true},
@@ -435,7 +435,7 @@ func (p pane) render(width, height int) []string {
 	for i, r := range p.rows {
 		all[i] = r.cells
 	}
-	l := layoutColumns(p.columns(), p.spec.dropOrder, all, all[start:end], inner)
+	l := layoutColumns(p.columns(), p.spec.dropOrder, all, inner)
 	headers := make([]string, len(l.columns))
 	for i, c := range l.columns {
 		headers[i] = alignCell(c.header(), l.widths[i], c.right)

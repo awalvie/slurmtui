@@ -108,11 +108,3 @@ func (s JobState) ShowsReason() bool {
 func (s JobState) Ended() bool {
 	return !slices.Contains(jobBasesStillActive, s.Base) && !s.has("COMPLETING") && !s.has("STAGE_OUT")
 }
-
-func WidestJobLabel() int {
-	widest := 0
-	for _, l := range slices.Concat(jobBases, jobFlagsByPriority) {
-		widest = max(widest, len(l))
-	}
-	return widest
-}

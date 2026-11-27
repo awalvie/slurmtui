@@ -147,19 +147,18 @@ The table divides its inner width between the columns (sofka `distribute_column_
 
 Each column has a kind:
 
-- Fixed: always the same width. STATE is Fixed, at the width of the longest glyph and label that the view can show (sinfo labels for nodes, squeue state names for jobs, for example `✕ OUT_OF_MEMORY` at 15 cells). Thus a state change does not move the other columns.
-- Fit: the width of its widest cell or header, but not more than its cap. A cell that is longer than the cap is cut.
+- Fit: the width of its widest cell in all rows of the pane, or of its header when that is wider, but not more than its cap. A cell that is longer than the cap is cut. The width comes from the values that the pane has now, not from the longest value that slurmtui can show. Thus STATE is narrow when all states are short, and it gets wider when a longer state comes.
 - Flex: shares the remaining budget by weight.
 
-| View | Fixed | Fit (cap) | Flex (weight) |
-|---|---|---|---|
-| Nodes | STATE | NAME (20), CPU, MEM(GiB), GRES, BY (12), AGE | REASON (1) |
-| Jobs | STATE | ID (no cap), PARTITION (10), USER (12), TIME, TIME_LEFT, NODES | NAME (1), NODELIST(REASON) (3) |
+| View | Fit (cap) | Flex (weight) |
+|---|---|---|
+| Nodes | NAME (20), STATE, CPU, MEM(GiB), GRES, BY (12), AGE | REASON (1) |
+| Jobs | ID, PARTITION (10), USER (12), STATE, TIME, TIME_LEFT, NODES | NAME (1), NODELIST(REASON) (3) |
 
-- ID is the width of the widest ID in the rows that the pane shows in its window, or of the header `ID`. It has no other minimum. Thus a long array ID makes ID wide only while that row is on the screen.
+- A Fit width uses all rows of the pane, also the rows out of its window. Thus the widths do not change when the window scrolls.
 - CPU, MEM(GiB), GRES, TIME, TIME_LEFT and NODES are right-aligned. All other columns are left-aligned.
 
-The budget that remains after the Fixed and Fit columns goes to the Flex columns (sofka waterfall):
+The budget that remains after the Fit columns goes to the Flex columns (sofka waterfall):
 
 1. If the share by weight of a Flex column holds its widest cell, the column gets that width. The other Flex columns share the remainder. This step repeats until no other column gets its full width.
 2. If all Flex columns got their full width, the surplus goes to them by weight. Thus the table always fills the frame width, and the columns do not pack to the left.
@@ -167,7 +166,7 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 
 - A cell that is wider than its column is cut and ends with `…` (U+2026). No space goes before the `…`: `required…`, not `required …`.
 - ID is never cut (squeue form, see Jobs view).
-- If the budget cannot hold each Fixed and Fit column at its width and each Flex column at its header width, slurmtui removes columns in the order that States gives.
+- If the budget cannot hold each Fit column at its width and each Flex column at its header width, slurmtui removes columns in the order that States gives.
 
 ### Header
 

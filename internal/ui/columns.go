@@ -13,18 +13,16 @@ type cell struct {
 type columnKind int
 
 const (
-	fixedColumn columnKind = iota
-	fitColumn
+	fitColumn columnKind = iota
 	flexColumn
 )
 
 type column struct {
-	name       string
-	arrow      string
-	kind       columnKind
-	size       int
-	right      bool
-	fromWindow bool
+	name  string
+	arrow string
+	kind  columnKind
+	size  int
+	right bool
 }
 
 const columnGap = "  "
@@ -37,14 +35,10 @@ func (c column) headerWidth() int {
 	return ansi.StringWidth(c.header())
 }
 
-func naturalWidths(cols []column, all, window [][]cell) []int {
+func naturalWidths(cols []column, rows [][]cell) []int {
 	out := make([]int, len(cols))
 	for i, c := range cols {
 		out[i] = c.headerWidth()
-		rows := all
-		if c.fromWindow {
-			rows = window
-		}
 		for _, r := range rows {
 			out[i] = max(out[i], ansi.StringWidth(r[i].text))
 		}
@@ -57,8 +51,6 @@ func columnWidths(cols []column, natural []int, budget int) []int {
 	var flex []int
 	for i, c := range cols {
 		switch c.kind {
-		case fixedColumn:
-			widths[i] = max(c.size, c.headerWidth())
 		case fitColumn:
 			widths[i] = natural[i]
 			if c.size > 0 {
@@ -161,15 +153,14 @@ type layout struct {
 	keep    []int
 }
 
-func layoutColumns(cols []column, dropOrder []string, all, window [][]cell, inner int) layout {
+func layoutColumns(cols []column, dropOrder []string, rows [][]cell, inner int) layout {
 	keep := make([]int, len(cols))
 	for i := range keep {
 		keep[i] = i
 	}
 	measure := func() layout {
-		c, a := project(cols, all, keep)
-		_, w := project(cols, window, keep)
-		return layout{columns: c, widths: columnWidths(c, naturalWidths(c, a, w), tableBudget(inner, len(c))), keep: keep}
+		c, r := project(cols, rows, keep)
+		return layout{columns: c, widths: columnWidths(c, naturalWidths(c, r), tableBudget(inner, len(c))), keep: keep}
 	}
 	l := measure()
 	for _, name := range dropOrder {

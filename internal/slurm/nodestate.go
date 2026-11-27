@@ -2,10 +2,8 @@ package slurm
 
 import (
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
-	"sync"
 )
 
 var nodeBases = map[string]bool{
@@ -251,28 +249,3 @@ func (s NodeState) upperLabel() string {
 	}
 	return "UNKNOWN"
 }
-
-var WidestNodeLabel = sync.OnceValue(func() int {
-	flags := slices.Sorted(maps.Keys(nodeFlagNames))
-	widest := 0
-	measure := func(base string, set ...string) {
-		s := NodeState{Base: base, Flags: map[string]bool{}}
-		for _, f := range set {
-			s.Flags[f] = true
-		}
-		widest = max(widest, len(s.Label()))
-	}
-	for base := range nodeBases {
-		measure(base)
-		for i, a := range flags {
-			measure(base, a)
-			for j := i + 1; j < len(flags); j++ {
-				measure(base, a, flags[j])
-				for _, c := range flags[j+1:] {
-					measure(base, a, flags[j], c)
-				}
-			}
-		}
-	}
-	return widest
-})

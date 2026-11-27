@@ -38,7 +38,10 @@ func wideCluster() fakeslurm.Cluster {
 }
 
 func TestNarrowPanesRemoveColumnsInTheirOrder(t *testing.T) {
-	cluster := fakeslurm.Start(t, wideCluster())
+	wide := wideCluster()
+	wide.Nodes[0].Name = "gpu-node-07-rack-a12"
+	wide.Jobs[0].Partition, wide.Jobs[0].UserName = "gpu-a100x8", "researcher12"
+	cluster := fakeslurm.Start(t, wide)
 	for _, tc := range []struct {
 		width, height int
 		nodes, jobs   string
@@ -51,7 +54,7 @@ func TestNarrowPanesRemoveColumnsInTheirOrder(t *testing.T) {
 		if got := r.columnNamesIn("Nodes"); got != tc.nodes {
 			t.Errorf("at %dx%d Nodes columns = %q, want %q\nscreen:\n%s", tc.width, tc.height, got, tc.nodes, r.screen())
 		}
-		if reason := r.rowByName("gpu-node-07").cells["REASON"]; !strings.HasSuffix(reason, "…") {
+		if reason := r.rowByName("gpu-node-07-rack-a12").cells["REASON"]; !strings.HasSuffix(reason, "…") {
 			t.Errorf("at %dx%d REASON = %q, want it cut with …", tc.width, tc.height, reason)
 		}
 		r.send(":jobs\r")
