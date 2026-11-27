@@ -8,6 +8,5 @@ if [ -n "$unformatted" ]; then
   exit 1
 fi
 go vet ./...
-go run ./tools/nocomments
 golangci-lint run ./...
 ./scripts/test

@@ -1,6 +1,6 @@
 # Coding standards
 
-The review step reads this file. `scripts/check` enforces the mechanical rules (format, vet, lint, no code comments, tests). This file holds the rules that need judgement.
+The review step reads this file. `scripts/check` enforces the mechanical rules (format, vet, lint, tests). This file holds the rules that need judgement.
 
 ## Fail loud
 
@@ -8,9 +8,9 @@ The review step reads this file. `scripts/check` enforces the mechanical rules (
 - Catch an error only to retry or to add context. Every other error goes up to the caller.
 - No fallbacks: no default value that hides a missing or bad input, no `_` for an error, no "best effort" branch. If Slurm sends data that slurmtui cannot read, show an error that names the field and the value.
 
-## Names, not comments
+## Comments
 
-- Code has no comments (`scripts/check` rejects them). Put the reason in a name, a test name, an ADR, or a doc in `docs/`.
+- Comments say why, not what. Exported names get standard Go doc comments.
 
 ## Domain language
 

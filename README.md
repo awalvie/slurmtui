@@ -208,7 +208,7 @@ Key file rules:
 | Command | Does |
 |---|---|
 | `nix develop` | Dev shell: Go, gopls, golangci-lint, just |
-| `just check` | gofmt, vet, no-comments check, lint, tests. CI and the pre-commit hook run the same script. |
+| `just check` | gofmt, vet, lint, tests. CI and the pre-commit hook run the same script. |
 | `just hooks` | Enable the pre-commit hook |
 | `just test` | Tests, without the integration tests |
 | `just run --url <url> --user <user>` | Run from source, with `SLURM_JWT` set |
