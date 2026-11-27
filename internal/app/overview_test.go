@@ -40,36 +40,55 @@ func TestOverviewShowsNodesAboveJobsWithFocusOnNodes(t *testing.T) {
 	}
 }
 
-func TestPaneHeightsFollowTheNodeCountAndTheBody(t *testing.T) {
+func manyJobs(n int) []fakeslurm.Job {
+	out := make([]fakeslurm.Job, n)
+	for i := range out {
+		out[i] = runningJob(int32(1000 + i))
+	}
+	return out
+}
+
+func TestPaneHeightsFollowTheRowCountsAndTheBody(t *testing.T) {
 	for _, c := range []struct {
-		width, height, nodes                 int
+		width, height, nodes, jobs           int
 		nodesTop, nodesEnd, jobsTop, jobsEnd int
 	}{
-		{160, 50, 3, 6, 11, 13, 48},
-		{160, 50, 40, 6, 22, 24, 48},
-		{80, 24, 40, 5, 11, 12, 22},
+		{160, 50, 3, 1, 6, 11, 13, 18},
+		{160, 50, 3, 4, 6, 11, 13, 20},
+		{160, 50, 3, 60, 6, 11, 13, 48},
+		{160, 50, 40, 1, 6, 22, 24, 29},
+		{80, 24, 40, 1, 5, 11, 12, 17},
+		{80, 24, 40, 60, 5, 11, 12, 22},
 	} {
-		t.Run(fmt.Sprintf("%dx%d with %d nodes", c.width, c.height, c.nodes), func(t *testing.T) {
-			r := startOverviewSized(t, c.width, c.height, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(c.nodes), Jobs: []fakeslurm.Job{runningJob(1)}})
-			check := func(when string) {
+		t.Run(fmt.Sprintf("%dx%d with %d nodes and %d jobs", c.width, c.height, c.nodes, c.jobs), func(t *testing.T) {
+			r := startOverviewSized(t, c.width, c.height, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(c.nodes), Jobs: manyJobs(c.jobs)})
+			checkJobsEnd := func(when string, jobsEnd int) {
 				t.Helper()
 				nt, nb := r.frameRows("Nodes")
 				jt, jb := r.frameRows("Jobs")
-				if nt != c.nodesTop || nb != c.nodesEnd || jt != c.jobsTop || jb != c.jobsEnd {
-					t.Fatalf("%s: Nodes rows %d-%d, Jobs rows %d-%d; want %d-%d and %d-%d\nscreen:\n%s", when, nt, nb, jt, jb, c.nodesTop, c.nodesEnd, c.jobsTop, c.jobsEnd, r.screen())
+				if nt != c.nodesTop || nb != c.nodesEnd || jt != c.jobsTop || jb != jobsEnd {
+					t.Fatalf("%s: Nodes rows %d-%d, Jobs rows %d-%d; want %d-%d and %d-%d\nscreen:\n%s", when, nt, nb, jt, jb, c.nodesTop, c.nodesEnd, c.jobsTop, jobsEnd, r.screen())
+				}
+				if !strings.Contains(r.bottomLine(), "●") {
+					t.Fatalf("%s: the last row %q is not the bottom line\nscreen:\n%s", when, r.bottomLine(), r.screen())
 				}
 			}
 			r.waitFor(fmt.Sprintf("Nodes %d ", c.nodes))
+			check := func(when string) { t.Helper(); checkJobsEnd(when, c.jobsEnd) }
+			r.waitFor(fmt.Sprintf("Jobs %d ", c.jobs))
 			check("at start")
 			r.send("\t")
 			r.waitUntil("focus on Jobs", func() bool { return isANSI(r.cellAt(gridLeft, r.frameTop("Jobs")).Style.Fg, ansiBlue) })
 			check("after tab")
+			r.send("G")
+			r.waitUntil("Jobs cursor move", func() bool { return c.jobs == 1 || r.selected() != "1000" })
+			check("after the Jobs cursor moves")
 			r.send("\tGk")
 			r.waitUntil("cursor move", func() bool { return r.selected() != "n01" })
 			check("after cursor moves")
 			r.send("\r")
 			r.waitFor("· on n")
-			check("after enter on a node")
+			checkJobsEnd("after enter on a node with no jobs", c.jobsTop+5)
 		})
 	}
 }

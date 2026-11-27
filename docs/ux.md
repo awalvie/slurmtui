@@ -44,7 +44,7 @@ The start screen is the Overview. It has four bands, from top to bottom: the hea
 
 - Header: the Context information at the left, the key hints of the focused pane in the middle, and the logo at the right (k9s). Header gives the rules.
 - Nodes pane: on top. Its height comes from its rows, to a maximum of 2/5 of the body (Height).
-- Jobs pane: under the Nodes pane. It takes all other rows of the body.
+- Jobs pane: under the Nodes pane. Its height comes from its rows, to a maximum of all other rows of the body (Height).
 - Bottom line: only the flash and the freshness, at the right. While the user types a filter or a command, the prompt is at the left (Bottom line).
 - At 30 rows or more, one blank row is under the header and one blank row is between the two panes. Below 30 rows, there are no blank rows. The 80x24 screen thus has no blank row.
 - `:nodes` and `:jobs` show one pane at full body height, with no Overview split (Navigation). Describe and raw JSON also use the full body. Help is a pop-up (Describe, raw JSON and help).
@@ -126,8 +126,8 @@ The title is the name, then facts separated by ` · ` in `dim` (k9s `[count]`, i
 
 - Body: the terminal height minus the header (5 rows), minus the bottom line (1 row), minus the blank row under the header (Layout). The body is at least 7 rows.
 - Nodes pane height: `min(N + 3, max(floor(body × 2 / 5), 5))`. N is the count of rows in the Nodes pane, and at least 1. The 3 rows are the two borders and the column header row.
-- Jobs pane height: all other rows of the body, minus the blank row between the panes (Layout). At 160x50 with 40 nodes, the body is 43 rows, the Nodes pane is 17 rows and the Jobs pane is 25 rows.
-- The heights do not change when the focus moves, when the cursor moves, or when the Jobs pane gets or loses a scope. A pane with fewer rows than its height has blank rows at the bottom.
+- Jobs pane height: `min(max(J + 1, 3) + 3, space)`. J is the count of rows in the Jobs pane. The 1 is a blank row after the last row. The space is all other rows of the body, minus the blank row between the panes (Layout). At 160x50 with 40 nodes, the body is 43 rows, the Nodes pane is 17 rows and the Jobs pane is at most 25 rows. Under a short Jobs pane, the rows to the bottom line are blank. The bottom line stays on the last screen row.
+- The heights change only when the count of rows changes. They do not change when the focus moves or when the cursor moves. A scope or a filter changes the Jobs pane height when it changes the count of rows. A Nodes pane with fewer rows than its height has blank rows at the bottom.
 - When the rows do not fit, the pane shows a window that keeps the cursor row visible (sofka). The column header row is always the first row in the frame.
 
 ### Table rows
