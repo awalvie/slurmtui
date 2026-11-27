@@ -59,6 +59,7 @@ func TestPaneHeightsFollowTheNodeCountAndTheBody(t *testing.T) {
 					t.Fatalf("%s: Nodes rows %d-%d, Jobs rows %d-%d; want %d-%d and %d-%d\nscreen:\n%s", when, nt, nb, jt, jb, c.nodesTop, c.nodesEnd, c.jobsTop, c.jobsEnd, r.screen())
 				}
 			}
+			r.waitFor(fmt.Sprintf("Nodes %d ", c.nodes))
 			check("at start")
 			r.send("\t")
 			r.waitUntil("focus on Jobs", func() bool { return isANSI(r.cellAt(gridLeft, r.frameTop("Jobs")).Style.Fg, ansiBlue) })
