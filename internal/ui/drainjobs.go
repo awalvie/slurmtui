@@ -44,36 +44,46 @@ func jobCount(n int) string {
 	return fmt.Sprintf("%d jobs run here", n)
 }
 
-func (m Model) jobsOnNode(name string) []string {
+type jobList struct {
+	head []string
+	rows []string
+	tail []string
+}
+
+func (m Model) jobsOnNode(name string) jobList {
 	now := m.clock.Now()
 	on, problems := m.runningOn(name)
 	if len(on) == 0 {
-		return append(problems, dimStyle.Render("No jobs run on "+name+"."))
+		return jobList{head: append(problems, dimStyle.Render("No jobs run on "+name+"."))}
 	}
-	lines := append(problems, keyStyle.Render(jobCount(len(on))))
+	list := jobList{head: append(problems, keyStyle.Render(jobCount(len(on))))}
 	var latest time.Duration
 	limited := true
-	for i, j := range on {
+	for _, j := range on {
 		left, ok, err := m.timeLeft(j, now)
 		if err != nil {
-			lines = append(lines, badStyle.Render(err.Error()))
+			list.head = append(list.head, badStyle.Render(err.Error()))
 		}
 		limited = limited && ok
 		latest = max(latest, left)
-		if i >= jobsListedOnNode {
-			continue
-		}
 		leftText := "no time limit"
 		if ok {
 			leftText = age(left) + " left"
 		}
-		lines = append(lines, jobRowIndent+fitLeft(j.ID(), jobIDWidth)+" "+fitLeft(j.Name, jobNameWidth)+" "+fitLeft(j.User, jobUserWidth)+" "+leftText)
-	}
-	if more := len(on) - jobsListedOnNode; more > 0 {
-		lines = append(lines, jobRowIndent+dimStyle.Render(fmt.Sprintf("and %d more", more)))
+		list.rows = append(list.rows, jobRowIndent+fitLeft(j.ID(), jobIDWidth)+" "+fitLeft(j.Name, jobNameWidth)+" "+fitLeft(j.User, jobUserWidth)+" "+leftText)
 	}
 	if !limited {
-		return append(lines, dimStyle.Render("Empty by: unknown (a job has no time limit)"))
+		list.tail = []string{dimStyle.Render("Empty by: unknown (a job has no time limit)")}
+		return list
 	}
-	return append(lines, dimStyle.Render("Empty by ~"+now.Add(latest).Local().Format(emptyByLayout)+" (latest time limit)"))
+	list.tail = []string{dimStyle.Render("Empty by ~" + now.Add(latest).Local().Format(emptyByLayout) + " (latest time limit)")}
+	return list
+}
+
+func (l jobList) shown(room int) []string {
+	if len(l.rows) <= min(room, jobsListedOnNode) {
+		return l.rows
+	}
+	keep := max(min(room-1, jobsListedOnNode), 0)
+	return append(slices.Clone(l.rows[:keep]), jobRowIndent+dimStyle.Render(fmt.Sprintf("and %d more", len(l.rows)-keep)))
 }

@@ -145,6 +145,31 @@ func TestDrainListsTheJobsOnTheNodeAndWhenItIsEmpty(t *testing.T) {
 	}
 }
 
+func TestTallDrainDialogShrinksTheJobListAndKeepsItsButtons(t *testing.T) {
+	var jobs []fakeslurm.Job
+	for i := range 10 {
+		jobs = append(jobs, onNode(int32(4800+i), "n01", time.Hour))
+	}
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n01")}, Jobs: jobs})
+	r := startSizedOn(t, cluster, 80, 24)
+	r.waitFor("┌ Jobs 10 ")
+	bodyTop := r.mustFrameTop("Nodes")
+
+	r.send("D" + "\r")
+
+	r.waitFor("Reason is required")
+	b := r.dialogBox("Drain n01 on")
+	r.checkMarginAround(b, bodyTop)
+	rows := strings.Join(r.dialogRows(b), "\n")
+	for _, text := range []string{"10 jobs run here", "4809", "more", "Empty by", "▸ Reason", " Drain ", "Keep", "Reason is required"} {
+		if !strings.Contains(rows, text) {
+			t.Fatalf("tall dialog has no %q\n%s", text, r.screen())
+		}
+	}
+	r.send(escKey)
+	r.waitGone("Drain n01 on")
+}
+
 func TestDrainSaysWhenTheNodeHasNoJobsOrAJobHasNoLimit(t *testing.T) {
 	unlimited := onNode(7, "n01", time.Hour)
 	unlimited.TimeLimit = fakeslurm.NoVal{Infinite: true}

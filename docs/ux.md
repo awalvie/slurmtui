@@ -237,7 +237,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - Body rows start 2 cells inside the border. A blank row is above the first body row.
 - Drain body: `No new jobs start on n02. Running jobs finish.`, then the jobs on the node:
   - `N jobs run here` in `key`, then one row for each running or completing job whose hostlist holds the node: ID, name, user and time left (`slurm-domain.md` §3, TIME_LEFT). The ID column is 8 cells, the name column 16 cells (cut with `…`), the user column 6 cells. Rows are newest ID first. A job with no limit of its own uses its partition's limit. A job with no limit at all shows `no time limit`. One job shows `1 job runs here`.
-  - After 4 jobs, `and N more` in `dim`.
+  - After 4 jobs, `and N more` in `dim`. When the dialog does not fit in the body, it lists fewer jobs. Thus the field, the buttons and the error row always show.
   - `Empty by ~Fri 12:00 (latest time limit)` in `dim`: the clock time plus the largest time left, as `Mon 15:04`. If one of the jobs has no time limit, the row is `Empty by: unknown (a job has no time limit)`.
   - With no job: `No jobs run on n02.` in `dim`.
 - Edit reason body (`D` on a node with the DRAIN flag): `The node stays drained. Only the reason changes.`, the jobs on the node, then the Reason field with the current reason. Title ` Edit reason of n05 on prod (lamp) `. Buttons `Save` / `Keep`.

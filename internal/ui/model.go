@@ -281,7 +281,7 @@ func (m Model) View() tea.View {
 	screen := strings.Join(lines, "\n")
 	switch {
 	case m.dialog != nil:
-		screen = overlaid(lines, m.dialog.view(width), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
+		screen = overlaid(lines, m.dialog.view(width, m.bodyHeight()-2*popupMargin), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	case m.top().kind == helpView:
 		screen = overlaid(lines, m.helpBox(), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	}

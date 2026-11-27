@@ -91,7 +91,8 @@ func (m Model) openDrain() Model {
 	m.dialog = newConfirm(confirmSpec{
 		title:  fmt.Sprintf("%s %s on %s", w.title, name, m.target()),
 		colour: warnStyle,
-		body:   append([]string{w.first, ""}, m.jobsOnNode(name)...),
+		body:   []string{w.first, ""},
+		jobs:   m.jobsOnNode(name),
 		field:  &confirmField{label: "Reason", value: w.reason, required: true, mustChange: w.editsReason},
 		action: w.action,
 		kept:   keptFlash(name),

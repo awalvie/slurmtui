@@ -20,6 +20,7 @@ type confirmSpec struct {
 	title  string
 	colour lipgloss.Style
 	body   []string
+	jobs   jobList
 	field  *confirmField
 	action string
 	kept   string
@@ -161,10 +162,29 @@ func (c confirm) field() string {
 	return dialogBodyInset + warnStyle.Render("▸ ") + f.label + "  " + textStyle.Render(c.input) + warnStyle.Render("█")
 }
 
-func (c confirm) view(screen int) []string {
+func (c confirm) view(screen, height int) []string {
 	width := dialogWidth(screen)
+	jobs := c.spec.jobs
+	without := c.lines(width, jobs.head, jobs.tail)
+	errorRows := 0
+	if c.spec.field != nil && c.problem == "" {
+		errorRows = 2
+	}
+	room := height - boxBorders - len(without) - errorRows
+	body := append(append(slices.Clone(jobs.head), jobs.shown(room)...), jobs.tail...)
+	lines := c.lines(width, body)
+	return box{
+		title:  c.spec.colour.Bold(true).Render(c.spec.title),
+		width:  width,
+		height: len(lines) + boxBorders,
+		colour: &c.spec.colour,
+		lines:  lines,
+	}.render()
+}
+
+func (c confirm) lines(width int, jobs ...[]string) []string {
 	lines := []string{""}
-	for _, l := range c.spec.body {
+	for _, l := range append(slices.Clone(c.spec.body), slices.Concat(jobs...)...) {
 		lines = append(lines, dialogBodyInset+l)
 	}
 	if c.spec.field != nil {
@@ -174,15 +194,7 @@ func (c confirm) view(screen int) []string {
 	if c.problem != "" {
 		lines = append(lines, "", dialogBodyInset+badStyle.Render(c.problem))
 	}
-	lines = append(lines, "")
-	colour := c.spec.colour
-	return box{
-		title:  colour.Bold(true).Render(c.spec.title),
-		width:  width,
-		height: len(lines) + 2,
-		colour: &colour,
-		lines:  lines,
-	}.render()
+	return append(lines, "")
 }
 
 func (c confirm) hints() []hint {
