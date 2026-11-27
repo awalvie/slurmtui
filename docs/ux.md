@@ -230,8 +230,9 @@ The hints show the keys of the focused pane, in this order. They change with the
  └──────────────────────────────────────────────────────────────┘
 ```
 
-- A dialog is a frame in the centre of the body. Its width is half the screen width minus 2, but at least 64 cells, and never wider than the screen minus 2. Its height fits its content, but never more than the body height. It never covers the header or the bottom line.
-- Overlay fade: all rows above the bottom line are drawn again in `dim`, with their colours removed. Border characters (`┌ ─ │ └`) become blanks, so no piece of a pane frame shows next to the dialog. Then the dialog goes on top, with no blank margin. The bottom line keeps its colours.
+- A dialog is a pop-up: a frame in the centre of the body. Its width is half the screen width minus 2, but at least 64 cells, and never wider than the screen minus 2. Its height fits its content, but never more than the body height minus 2.
+- Pop-up fade: under each pop-up (dialog, help, setup form), all rows above the bottom line are drawn again in `dim`, with their colours removed. Text and pane borders keep their shape. The bottom line keeps its colours.
+- Pop-up margin: a blank margin of 1 cell goes around the frame on all 4 sides. Thus no faded character touches the border. The frame and its margin stay in the body. They never cover the header or the bottom line.
 - The title is bold, in the border colour. It names the action, the target, the Context and the cluster: ` Drain n02 on prod (lamp) `. When Slurm sends no cluster name, the title has only the Context: ` Drain n02 on prod `. The colour shows the type: Drain and Edit reason in `warn`, Resume in `focus`, Cancel in `bad`.
 - Body rows start 2 cells inside the border. A blank row is above the first body row.
 - Drain body: `No new jobs start on n02. Running jobs finish.`, then the jobs on the node:

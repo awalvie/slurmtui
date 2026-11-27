@@ -70,7 +70,11 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	if c := r.cellAt(b.x+2, b.y); !isANSI(c.Style.Fg, ansiYellow) || c.Style.Attrs&uv.AttrBold == 0 {
 		t.Fatalf("Drain title is not yellow bold: %+v", c.Style)
 	}
-	r.checkNoBorderNextTo(b)
+	r.checkMarginAround(b, 6)
+	r.checkFadedUnder(b)
+	if c := r.cellAt(frameLeft, 6); c.Content != "┌" {
+		t.Fatalf("pane corner under the dialog = %q, want a faint ┌\n%s", c.Content, r.screen())
+	}
 	if c := r.cellAt(gridLeft, 0); c.Content != "C" || !isFaintWithoutColour(c.Style) {
 		t.Fatalf("header cell = %q %+v, want a faint C without colour", c.Content, c.Style)
 	}
@@ -91,38 +95,39 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	}
 }
 
-func isBorder(content string) bool {
-	return content != "" && strings.ContainsAny(content, "┌┐└┘│─├┤┬┴┼")
+func isBlank(c uv.Cell) bool {
+	return c.Content == "" || c.Content == " "
 }
 
-func (r *run) firstMarkFrom(x, y, dx, dy int) (string, [2]int) {
-	for x >= 0 && y >= 0 && x < r.width && y < r.height {
-		if c := r.cellAt(x, y).Content; c != " " && c != "" {
-			return c, [2]int{x, y}
-		}
-		x, y = x+dx, y+dy
-	}
-	return "", [2]int{x, y}
-}
-
-func (r *run) checkNoBorderNextTo(b dialogBox) {
+func (r *run) checkMarginAround(b dialogBox, bodyTop int) {
 	r.t.Helper()
-	type ray struct{ x, y, dx, dy int }
-	var rays []ray
-	for y := b.y; y < b.y+b.height; y++ {
-		rays = append(rays, ray{b.x - 1, y, -1, 0}, ray{b.x + b.width, y, 1, 0})
+	left, right, top, bottom := b.x-1, b.x+b.width, b.y-1, b.y+b.height
+	if left < 0 || right >= r.width || top < bodyTop || bottom > r.height-2 {
+		r.t.Fatalf("box %+v and its margin leave the body (rows %d to %d, columns 0 to %d)\n%s", b, bodyTop, r.height-2, r.width-1, r.screen())
 	}
-	for x := b.x; x < b.x+b.width; x++ {
-		rays = append(rays, ray{x, b.y - 1, 0, -1}, ray{x, b.y + b.height, 0, 1})
-	}
-	for _, ry := range rays {
-		if c, at := r.firstMarkFrom(ry.x, ry.y, ry.dx, ry.dy); isBorder(c) && at[1] < r.height-1 {
-			r.t.Fatalf("border piece %q at %v next to the dialog\n%s", c, at, r.screen())
+	for y := top; y <= bottom; y++ {
+		for x := left; x <= right; x++ {
+			ring := y == top || y == bottom || x == left || x == right
+			if c := r.cellAt(x, y); ring && !isBlank(c) {
+				r.t.Fatalf("margin cell (%d,%d) = %q, want blank\n%s", x, y, c.Content, r.screen())
+			}
 		}
 	}
 }
 
-func TestDialogsStayInTheBodyWithNoBorderPiecesNextToThem(t *testing.T) {
+func (r *run) checkFadedUnder(b dialogBox) {
+	r.t.Helper()
+	for y := range r.height - 1 {
+		for x := range r.width {
+			inside := x >= b.x && x < b.x+b.width && y >= b.y && y < b.y+b.height
+			if c := r.cellAt(x, y); !inside && !isBlank(c) && !isFaintWithoutColour(c.Style) {
+				r.t.Fatalf("cell (%d,%d) %q = %+v under a pop-up, want faint without colour\n%s", x, y, c.Content, c.Style, r.screen())
+			}
+		}
+	}
+}
+
+func TestDialogsHaveABlankMarginInsideTheBody(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
 		Name:  "lamp",
 		Nodes: []fakeslurm.Node{idle("n1"), nodeIn("n2", "IDLE", "DRAIN")},
@@ -139,10 +144,8 @@ func TestDialogsStayInTheBodyWithNoBorderPiecesNextToThem(t *testing.T) {
 
 				r.waitFor(d.title)
 				b := r.dialogBox(d.title)
-				if b.y < bodyTop || b.y+b.height > r.height-1 {
-					t.Fatalf("dialog rows %d to %d leave the body (rows %d to %d)\n%s", b.y, b.y+b.height-1, bodyTop, r.height-2, r.screen())
-				}
-				r.checkNoBorderNextTo(b)
+				r.checkMarginAround(b, bodyTop)
+				r.checkFadedUnder(b)
 				r.send(escKey)
 				r.waitGone(d.title)
 			})

@@ -10,20 +10,12 @@ import (
 
 var helpHints = []hint{{"j/k", "scroll"}, {"esc", "back"}}
 
-func isBoxDrawing(r rune) bool {
-	return r >= '\u2500' && r <= '\u257f'
-}
+const popupMargin = 1
 
 func fade(lines []string) []string {
 	out := make([]string, len(lines))
 	for i, l := range lines {
-		plain := strings.Map(func(r rune) rune {
-			if isBoxDrawing(r) {
-				return ' '
-			}
-			return r
-		}, ansi.Strip(l))
-		out[i] = dimStyle.Render(plain)
+		out[i] = dimStyle.Render(ansi.Strip(l))
 	}
 	return out
 }
@@ -33,6 +25,16 @@ func clamped(box []string, height int) []string {
 		return box
 	}
 	return append(slices.Clone(box[:height-1]), box[len(box)-1])
+}
+
+func margined(box []string) []string {
+	blank := strings.Repeat(" ", widest(box)+2*popupMargin)
+	side := strings.Repeat(" ", popupMargin)
+	out := []string{blank}
+	for _, l := range box {
+		out = append(out, side+l+side)
+	}
+	return append(out, blank)
 }
 
 func (m Model) overlayHints() []hint {
@@ -46,11 +48,16 @@ func (m Model) overlayHints() []hint {
 }
 
 func overlaid(lines []string, box []string, width, bodyTop, bodyHeight int) string {
+	box = clamped(box, bodyHeight-2*popupMargin)
+	return overlaidAt(lines, box, width, bodyTop, bodyHeight, max((bodyHeight-len(box))/2, popupMargin))
+}
+
+func overlaidAt(lines []string, box []string, width, bodyTop, bodyHeight, row int) string {
 	height := len(lines)
 	screen := append(fade(lines[:height-bottomLineHeight]), lines[height-bottomLineHeight:]...)
-	box = clamped(box, bodyHeight)
+	box = margined(clamped(box, bodyHeight-2*popupMargin))
 	x := max((width-widest(box))/2, 0)
-	y := bodyTop + max((bodyHeight-len(box))/2, 0)
+	y := bodyTop + max(min(row-popupMargin, bodyHeight-len(box)), 0)
 	return lipgloss.NewCompositor(
 		lipgloss.NewLayer(strings.Join(screen, "\n")),
 		lipgloss.NewLayer(strings.Join(box, "\n")).X(x).Y(y).Z(1),
