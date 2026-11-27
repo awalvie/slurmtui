@@ -25,6 +25,7 @@ func twoContexts(prodURL, labURL string) string {
 }
 
 func TestContextFlagSelectsContextAndItsOwnToken(t *testing.T) {
+	t.Parallel()
 	prod := fakeslurm.Start(t, fakeslurm.Cluster{Name: "prod-cluster", Nodes: []fakeslurm.Node{idle("p1")}})
 	lab := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lab-cluster", Nodes: []fakeslurm.Node{idle("l1"), idle("l2")}})
 	bobToken := providedToken("bob", startTime.Add(time.Hour))
@@ -54,6 +55,7 @@ func TestContextFlagSelectsContextAndItsOwnToken(t *testing.T) {
 }
 
 func TestOneContextIsSelectedWithoutContextFlag(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := configDir(t, "slurmtui:\n  contexts:\n    only:\n      url: "+cluster.URL+"\n      tokenEnv: MY_TOKEN\n")
 
@@ -64,6 +66,7 @@ func TestOneContextIsSelectedWithoutContextFlag(t *testing.T) {
 }
 
 func TestConfigFileIsInXDGConfigHome(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	xdg := t.TempDir()
 	if err := os.Mkdir(filepath.Join(xdg, "slurmtui"), 0o700); err != nil {
@@ -79,6 +82,7 @@ func TestConfigFileIsInXDGConfigHome(t *testing.T) {
 }
 
 func TestFlagsWithoutConfigFileNameTheContextAfterTheHost(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	host := strings.TrimPrefix(cluster.URL, "http://")
 
@@ -90,6 +94,7 @@ func TestFlagsWithoutConfigFileNameTheContextAfterTheHost(t *testing.T) {
 }
 
 func TestManyContextsWithoutContextFlagFail(t *testing.T) {
+	t.Parallel()
 	dir := configDir(t, twoContexts("http://127.0.0.1:1", "http://127.0.0.1:2"))
 
 	stderr := startupError(t, nil, map[string]string{"SLURMTUI_CONFIG_DIR": dir})
@@ -98,6 +103,7 @@ func TestManyContextsWithoutContextFlagFail(t *testing.T) {
 }
 
 func TestUnknownContextFails(t *testing.T) {
+	t.Parallel()
 	dir := configDir(t, twoContexts("http://127.0.0.1:1", "http://127.0.0.1:2"))
 
 	stderr := startupError(t, []string{"--context", "staging"}, map[string]string{"SLURMTUI_CONFIG_DIR": dir})
@@ -106,12 +112,14 @@ func TestUnknownContextFails(t *testing.T) {
 }
 
 func TestContextFlagWithoutConfigFileFails(t *testing.T) {
+	t.Parallel()
 	stderr := startupError(t, []string{"--context", "prod"}, nil)
 
 	wantStderr(t, stderr, `--context "prod"`)
 }
 
 func TestContextNeedsExactlyOneTokenSource(t *testing.T) {
+	t.Parallel()
 	cases := map[string]string{
 		"none": "slurmtui:\n  contexts:\n    prod:\n      url: http://127.0.0.1:1\n      user: alice\n",
 		"two":  "slurmtui:\n  contexts:\n    prod:\n      url: http://127.0.0.1:1\n      user: alice\n      tokenEnv: SLURM_JWT\n      keyFile: keys/prod.key\n",
@@ -126,6 +134,7 @@ func TestContextNeedsExactlyOneTokenSource(t *testing.T) {
 }
 
 func TestUserThatDiffersFromTokenSunFails(t *testing.T) {
+	t.Parallel()
 	config := "slurmtui:\n  contexts:\n    prod:\n      url: http://127.0.0.1:1\n      user: bob\n      tokenEnv: SLURM_JWT\n"
 
 	t.Run("config", func(t *testing.T) {
@@ -139,6 +148,7 @@ func TestUserThatDiffersFromTokenSunFails(t *testing.T) {
 }
 
 func TestConfigUserThatMatchesSunIsAccepted(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	config := "slurmtui:\n  contexts:\n    prod:\n      url: " + cluster.URL + "\n      user: alice\n      tokenEnv: SLURM_JWT\n"
 
@@ -149,6 +159,7 @@ func TestConfigUserThatMatchesSunIsAccepted(t *testing.T) {
 }
 
 func TestProvidedTokenThatIsNotAJWTFails(t *testing.T) {
+	t.Parallel()
 	stderr := startupError(t, []string{"--url", "http://127.0.0.1:1"}, map[string]string{"SLURM_JWT": "not-a-jwt-secret"})
 
 	wantStderr(t, stderr, "SLURM_JWT")
@@ -158,6 +169,7 @@ func TestProvidedTokenThatIsNotAJWTFails(t *testing.T) {
 }
 
 func TestMissingTokenEnvNamesTheVariable(t *testing.T) {
+	t.Parallel()
 	dir := configDir(t, twoContexts("http://127.0.0.1:1", "http://127.0.0.1:2"))
 
 	stderr := startupError(t, []string{"--context", "lab"}, map[string]string{"SLURMTUI_CONFIG_DIR": dir, "SLURM_JWT": aliceToken})
@@ -166,12 +178,14 @@ func TestMissingTokenEnvNamesTheVariable(t *testing.T) {
 }
 
 func TestHeaderShowsProvidedTokenExpiry(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
 	startProvided(t, cluster).waitFor("Expires  " + startTime.Add(time.Hour).Local().Format("15:04"))
 }
 
 func TestExpiredProvidedTokenStopsRefresh(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	expiry := startTime.Add(7 * time.Second)
 	r := start(t, []string{"--url", cluster.URL}, map[string]string{"SLURM_JWT": providedToken("alice", expiry)})
@@ -197,6 +211,7 @@ func TestExpiredProvidedTokenStopsRefresh(t *testing.T) {
 }
 
 func TestExpiredMessageUsesTheContextTokenEnv(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := configDir(t, twoContexts("http://127.0.0.1:1", cluster.URL))
 	expiry := startTime.Add(-time.Minute)
@@ -210,6 +225,7 @@ func TestExpiredMessageUsesTheContextTokenEnv(t *testing.T) {
 }
 
 func TestRefreshRateFromConfigAndFlagHasPriority(t *testing.T) {
+	t.Parallel()
 	config := func(url string) string {
 		return "slurmtui:\n  refreshRate: 3\n  contexts:\n    prod:\n      url: " + url + "\n      tokenEnv: SLURM_JWT\n"
 	}
@@ -242,6 +258,7 @@ func TestRefreshRateFromConfigAndFlagHasPriority(t *testing.T) {
 }
 
 func TestIncorrectConfigFileNamesTheField(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name   string
 		config string
@@ -266,6 +283,7 @@ func TestIncorrectConfigFileNamesTheField(t *testing.T) {
 }
 
 func TestEmptyConfigFileWithFlagsWorks(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
 	r := start(t, []string{"--url", cluster.URL}, map[string]string{"SLURMTUI_CONFIG_DIR": configDir(t, ""), "SLURM_JWT": aliceToken})

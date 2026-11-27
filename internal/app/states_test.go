@@ -11,6 +11,7 @@ import (
 )
 
 func TestSmallTerminalShowsOnlyTheMinimumSize(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	const message = "terminal too small (80x24 minimum)"
 	for _, size := range []struct{ width, height int }{{79, 24}, {80, 23}} {
@@ -38,6 +39,7 @@ func wideCluster() fakeslurm.Cluster {
 }
 
 func TestNarrowPanesRemoveColumnsInTheirOrder(t *testing.T) {
+	t.Parallel()
 	wide := wideCluster()
 	wide.Nodes[0].Name = "gpu-node-07-rack-a12"
 	wide.Jobs[0].Partition, wide.Jobs[0].UserName = "gpu-a100x8", "researcher12"
@@ -74,6 +76,7 @@ func (r *run) waitEmptyRow(title, text string) {
 }
 
 func TestEmptyPanesSayWhyTheyHaveNoRows(t *testing.T) {
+	t.Parallel()
 	empty := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp"}))
 	empty.waitFor("┌ Nodes 0 ─")
 	empty.waitEmptyRow("Nodes", "no nodes")
@@ -93,6 +96,7 @@ func TestEmptyPanesSayWhyTheyHaveNoRows(t *testing.T) {
 }
 
 func TestLongEmptyRowIsCutAndKeepsTheRightMargin(t *testing.T) {
+	t.Parallel()
 	r := startSizedOn(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n01")}}), 80, 24)
 	r.waitFor("┌ Nodes 1 ")
 	filter := strings.Repeat("abcdefghij", 8)
@@ -111,18 +115,20 @@ func TestLongEmptyRowIsCutAndKeepsTheRightMargin(t *testing.T) {
 }
 
 func TestFieldOfTheWrongTypeIsAnErrorThatNamesFieldAndValue(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	cluster.ExpectOffSpec("nodes[0].cpus")
 	cluster.SetNodeField(0, "cpus", "sixty-four")
 
 	r := startProvided(t, cluster)
 
-	r.waitFor(`/slurm/v0.0.45/nodes: node "n1": cpus: "sixty-four" is not int`)
+	r.waitPopupText("Refresh failed", `/slurm/v0.0.45/nodes: node "n1": cpus: "sixty-four" is not int`)
 }
 
 const noVisibleDelay = 100 * time.Millisecond * raceSlowdown
 
 func TestJobsPaneStaysUsableWith5000Jobs(t *testing.T) {
+	t.Parallel()
 	jobs := make([]fakeslurm.Job, 5000)
 	for i := range jobs {
 		jobs[i] = runningJob(int32(10000 + i))
@@ -151,6 +157,7 @@ func TestJobsPaneStaysUsableWith5000Jobs(t *testing.T) {
 }
 
 func TestNodesRightTextGoesWhenTheTitleFillsTheFrame(t *testing.T) {
+	t.Parallel()
 	r := startSizedOn(t, fakeslurm.Start(t, wideCluster()), 80, 24)
 	r.waitFor("─ cpu 100% · mem 97% ┐")
 	r.send("/gpu-node-07|" + strings.Repeat("x", 30) + "\r")

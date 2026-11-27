@@ -14,6 +14,7 @@ func nodeRequests(cluster *fakeslurm.Server) int {
 }
 
 func TestRefreshShowsNewDataEachInterval(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -26,6 +27,7 @@ func TestRefreshShowsNewDataEachInterval(t *testing.T) {
 }
 
 func TestRefreshFlagChangesInterval(t *testing.T) {
+	t.Parallel()
 	for _, flag := range []string{"--refresh", "-r"} {
 		t.Run(flag, func(t *testing.T) {
 			cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
@@ -41,6 +43,7 @@ func TestRefreshFlagChangesInterval(t *testing.T) {
 }
 
 func TestRefreshBelowTwoSecondsIsAStartupError(t *testing.T) {
+	t.Parallel()
 	r := start(t, []string{"--url", "http://127.0.0.1:1", "--user", "alice", "--refresh", "1"}, map[string]string{"SLURM_JWT": aliceToken})
 
 	if code := r.waitExit(); code == 0 {
@@ -52,6 +55,7 @@ func TestRefreshBelowTwoSecondsIsAStartupError(t *testing.T) {
 }
 
 func TestFooterShowsDataAge(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("● 0s")
@@ -63,6 +67,7 @@ func TestFooterShowsDataAge(t *testing.T) {
 }
 
 func TestCtrlRRefreshesNow(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -74,6 +79,7 @@ func TestCtrlRRefreshesNow(t *testing.T) {
 }
 
 func TestFailedRefreshKeepsRowsAndShowsError(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -105,6 +111,7 @@ func TestFailedRefreshKeepsRowsAndShowsError(t *testing.T) {
 }
 
 func TestNonOKReplyShowsSlurmErrorDescription(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -113,10 +120,11 @@ func TestNonOKReplyShowsSlurmErrorDescription(t *testing.T) {
 	cluster.SetErrors("Authentication failure")
 	r.advance(5 * time.Second)
 
-	r.waitFor("/slurm/v0.0.45/nodes: HTTP 401: slurm: Authentication failure")
+	r.waitPopupText("Refresh failed", "/slurm/v0.0.45/nodes: HTTP 401: slurm: Authentication failure")
 }
 
 func TestErrorsArrayIsAFailure(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -124,12 +132,13 @@ func TestErrorsArrayIsAFailure(t *testing.T) {
 	cluster.SetErrors("Unable to query nodes")
 	r.advance(5 * time.Second)
 
-	r.waitFor("Unable to query nodes")
+	r.waitPopupText("Refresh failed", "Unable to query nodes")
 	r.waitFor("○ stale")
 	r.rowByName("n1")
 }
 
 func TestFirstLoadFailureRetriesEachTick(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	cluster.SetStatus(http.StatusBadGateway)
 	r := startProvided(t, cluster)
@@ -143,6 +152,7 @@ func TestFirstLoadFailureRetriesEachTick(t *testing.T) {
 }
 
 func TestOnlyOneRefreshAtATime(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -162,6 +172,7 @@ func TestOnlyOneRefreshAtATime(t *testing.T) {
 }
 
 func TestCursorFollowsNodeAcrossRefresh(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2"), idle("n3")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 3 ")

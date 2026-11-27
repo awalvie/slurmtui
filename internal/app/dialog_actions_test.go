@@ -32,6 +32,7 @@ func (r *run) waitButton(label string) {
 }
 
 func TestDialogTitlesAndColoursNameTheType(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name   string
 		node   string
@@ -67,6 +68,7 @@ func TestDialogTitlesAndColoursNameTheType(t *testing.T) {
 }
 
 func TestButtonsAreCentredAndKeepHasTheFocus(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), drained("n02", "bad DIMM", "alice", startTime))
 
 	r.send("U")
@@ -106,6 +108,7 @@ func onNode(id int32, node string, limit time.Duration) fakeslurm.Job {
 }
 
 func TestDrainListsTheJobsOnTheNodeAndWhenItIsEmpty(t *testing.T) {
+	t.Parallel()
 	jobs := []fakeslurm.Job{onNode(10, "n01", 48*time.Hour)}
 	for i := range 7 {
 		jobs = append(jobs, onNode(int32(4800+i), "n02", time.Duration(i+1)*time.Hour))
@@ -135,6 +138,7 @@ func TestDrainListsTheJobsOnTheNodeAndWhenItIsEmpty(t *testing.T) {
 }
 
 func TestTallDrainDialogShrinksTheJobListAndKeepsItsButtons(t *testing.T) {
+	t.Parallel()
 	var jobs []fakeslurm.Job
 	for i := range 10 {
 		jobs = append(jobs, onNode(int32(4800+i), "n01", time.Hour))
@@ -160,6 +164,7 @@ func TestTallDrainDialogShrinksTheJobListAndKeepsItsButtons(t *testing.T) {
 }
 
 func TestDrainSaysWhenTheNodeHasNoJobsOrAJobHasNoLimit(t *testing.T) {
+	t.Parallel()
 	unlimited := onNode(7, "n01", time.Hour)
 	unlimited.TimeLimit = fakeslurm.NoVal{Infinite: true}
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n01"), idle("n04")}, Jobs: []fakeslurm.Job{unlimited}})
@@ -178,6 +183,7 @@ func TestDrainSaysWhenTheNodeHasNoJobsOrAJobHasNoLimit(t *testing.T) {
 }
 
 func TestDrainUsesThePartitionLimitOfAJobWithNoOwnLimit(t *testing.T) {
+	t.Parallel()
 	job := onNode(7, "n01", time.Hour)
 	job.TimeLimit = fakeslurm.NoVal{}
 	job.Partition = "gpu"
@@ -197,6 +203,7 @@ func TestDrainUsesThePartitionLimitOfAJobWithNoOwnLimit(t *testing.T) {
 }
 
 func TestJobInAPartitionThatSlurmDoesNotListIsAnError(t *testing.T) {
+	t.Parallel()
 	job := onNode(7, "n01", time.Hour)
 	job.TimeLimit = fakeslurm.NoVal{}
 	job.Partition = "gone"
@@ -207,6 +214,7 @@ func TestJobInAPartitionThatSlurmDoesNotListIsAnError(t *testing.T) {
 }
 
 func TestDOnADrainedNodeEditsItsReason(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), drained("n05", "bad DIMM", "bob", startTime))
 
 	r.send("D")
@@ -221,6 +229,7 @@ func TestDOnADrainedNodeEditsItsReason(t *testing.T) {
 }
 
 func TestEnterOnAnUnchangedReasonSendsNothing(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), drained("n05", "bad DIMM", "bob", startTime))
 	r.send("D")
 	r.waitFor("▸ Reason  bad DIMM█")
@@ -235,6 +244,7 @@ func TestEnterOnAnUnchangedReasonSendsNothing(t *testing.T) {
 }
 
 func TestPasteGoesIntoTheReasonField(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 	r.send("D")
 	r.waitFor("▸ Reason  █")
@@ -247,6 +257,7 @@ func TestPasteGoesIntoTheReasonField(t *testing.T) {
 }
 
 func TestDialogTitleLeavesOutAnUnknownClusterName(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Nodes: []fakeslurm.Node{idle("n01")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -260,6 +271,7 @@ func TestDialogTitleLeavesOutAnUnknownClusterName(t *testing.T) {
 }
 
 func TestDOnADownNodeWithoutDrainOpensDrain(t *testing.T) {
+	t.Parallel()
 	down := nodeIn("n02", "DOWN", "NOT_RESPONDING")
 	down.Reason = "Not responding"
 	cluster, r := startOnSecondNode(t, idle("n01"), down)
@@ -270,6 +282,7 @@ func TestDOnADownNodeWithoutDrainOpensDrain(t *testing.T) {
 }
 
 func TestResumeShowsTheReasonWithItsUserAndAge(t *testing.T) {
+	t.Parallel()
 	_, r := startOnSecondNode(t, idle("n01"), drained("n02", "bad DIMM", "alice", startTime.Add(-(5*time.Hour+3*time.Minute))))
 
 	r.send("U")
@@ -280,6 +293,7 @@ func TestResumeShowsTheReasonWithItsUserAndAge(t *testing.T) {
 }
 
 func TestUOnAnIdleNodeOpensResumeAndSlurmRefuses(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("ghost3"))
 	cluster.RefuseNodeUpdates(http.StatusOK, recordedReply(t, "node-resume-invalid-transition-reply.json"))
 
@@ -293,6 +307,7 @@ func TestUOnAnIdleNodeOpensResumeAndSlurmRefuses(t *testing.T) {
 }
 
 func TestCtrlDOnAnEndedJobOpensCancelAndShowsTheReply(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{endedJob(1234, "COMPLETED")})
 	cluster.RefuseJobCancels(recordedReply(t, "job-cancel-finished-reply.json"))
 	r.waitSelected("1234")
@@ -305,6 +320,7 @@ func TestCtrlDOnAnEndedJobOpensCancelAndShowsTheReply(t *testing.T) {
 }
 
 func TestCancelNamesAllTasksOrComponents(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		job  fakeslurm.Job
 		row  string
@@ -323,6 +339,7 @@ func TestCancelNamesAllTasksOrComponents(t *testing.T) {
 }
 
 func TestEmptyReasonIsRefusedAndEscKeepsTheNode(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 	r.send("D")
 	r.waitFor("▸ Reason")

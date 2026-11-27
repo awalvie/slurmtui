@@ -44,6 +44,7 @@ func startSigned(t *testing.T, cluster *fakeslurm.Server, user string) *run {
 }
 
 func TestSignedTokenFromRelativeKeyFileIsAccepted(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "alice")
 
@@ -66,6 +67,7 @@ func TestSignedTokenFromRelativeKeyFileIsAccepted(t *testing.T) {
 }
 
 func TestSignedTokenIsNewForEachRequest(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
@@ -83,6 +85,7 @@ func TestSignedTokenIsNewForEachRequest(t *testing.T) {
 }
 
 func TestHeaderShowsRootInRedBold(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "root")
 	r.waitFor("User     root")
@@ -94,6 +97,7 @@ func TestHeaderShowsRootInRedBold(t *testing.T) {
 }
 
 func TestHeaderShowsOtherUsersInTheDefaultColor(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("User     alice")
@@ -104,6 +108,7 @@ func TestHeaderShowsOtherUsersInTheDefaultColor(t *testing.T) {
 }
 
 func TestRejectedSignedTokenSaysToCheckTheClock(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	clusterClock := clock.NewFake(startTime.Add(6 * time.Minute))
 	cluster.RequireSignedTokens(fakeClusterKey, clusterClock)
@@ -112,10 +117,11 @@ func TestRejectedSignedTokenSaysToCheckTheClock(t *testing.T) {
 
 	r := start(t, nil, map[string]string{"SLURMTUI_CONFIG_DIR": dir})
 
-	r.waitFor("/nodes: the cluster refused the signed token; check that this computer's clock is not slow")
+	r.waitPopupText("Refresh failed", "/nodes: the cluster refused the signed token; check that this computer's clock is not slow")
 }
 
 func TestKeyFilePathExpandsHome(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	clk := clock.NewFake(startTime)
 	cluster.RequireSignedTokens(fakeClusterKey, clk)
@@ -129,6 +135,7 @@ func TestKeyFilePathExpandsHome(t *testing.T) {
 }
 
 func TestKeyFileThroughSymlinkIsAccepted(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	clk := clock.NewFake(startTime)
 	cluster.RequireSignedTokens(fakeClusterKey, clk)
@@ -144,6 +151,7 @@ func TestKeyFileThroughSymlinkIsAccepted(t *testing.T) {
 }
 
 func TestUnsafeKeyFileFailsAtStartup(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name string
 		make func(t *testing.T, dir string) string
@@ -206,6 +214,7 @@ func TestUnsafeKeyFileFailsAtStartup(t *testing.T) {
 }
 
 func TestKeyFileWithTildeUserFails(t *testing.T) {
+	t.Parallel()
 	dir := configDir(t, signedContext("http://127.0.0.1:1", "alice", "~bob/prod.key"))
 
 	stderr := startupError(t, nil, map[string]string{"SLURMTUI_CONFIG_DIR": dir})

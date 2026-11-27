@@ -53,6 +53,7 @@ func isFaintWithoutColour(s uv.Style) bool {
 }
 
 func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("D")
@@ -128,6 +129,7 @@ func (r *run) checkFadedUnder(b dialogBox) {
 }
 
 func TestDialogsHaveABlankMarginInsideTheBody(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
 		Name:  "lamp",
 		Nodes: []fakeslurm.Node{idle("n1"), nodeIn("n2", "IDLE", "DRAIN")},

@@ -29,6 +29,7 @@ func startOnNodes(t *testing.T, nodes ...fakeslurm.Node) *run {
 }
 
 func TestFilterKeepsRowsThatMatchTheRegex(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"), idle("n2"), idle("gpu1"))
 	waitNames(r, "gpu1 n1 n2")
 
@@ -39,6 +40,7 @@ func TestFilterKeepsRowsThatMatchTheRegex(t *testing.T) {
 }
 
 func TestFilterWithBangInvertsTheMatch(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"), idle("n2"), idle("gpu1"))
 
 	r.send("/! gpu\r")
@@ -48,6 +50,7 @@ func TestFilterWithBangInvertsTheMatch(t *testing.T) {
 }
 
 func TestFilterMatchesAnyCell(t *testing.T) {
+	t.Parallel()
 	drained := idle("n2")
 	drained.State = []string{"IDLE", "DRAIN"}
 	drained.Reason = "bad DIMM"
@@ -59,6 +62,7 @@ func TestFilterMatchesAnyCell(t *testing.T) {
 }
 
 func TestFilterWithNoMatchShowsZeroRows(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"))
 
 	r.send("/x\r")
@@ -67,6 +71,7 @@ func TestFilterWithNoMatchShowsZeroRows(t *testing.T) {
 }
 
 func TestEscWhileTypingPutsBackTheFilterFromBefore(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"), idle("n2"), idle("gpu1"))
 	r.send("/^n\r")
 	r.waitFor("┌ Nodes 2 · /^n ─")
@@ -80,6 +85,7 @@ func TestEscWhileTypingPutsBackTheFilterFromBefore(t *testing.T) {
 }
 
 func TestBadFilterRegexIsAnError(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"))
 
 	r.send("/n[\r")
@@ -89,6 +95,7 @@ func TestBadFilterRegexIsAnError(t *testing.T) {
 }
 
 func TestEscClearsFilterThenGoesBackOneCrumb(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
 		Name:  "lamp",
 		Nodes: []fakeslurm.Node{idle("n1"), idle("n2")},
@@ -111,6 +118,7 @@ func TestEscClearsFilterThenGoesBackOneCrumb(t *testing.T) {
 }
 
 func TestShiftNSortsByNameWithNewestIDFirstAndAgainReverses(t *testing.T) {
+	t.Parallel()
 	named := func(id int32, name string) fakeslurm.Job {
 		j := runningJob(id)
 		j.Name = name
@@ -128,6 +136,7 @@ func TestShiftNSortsByNameWithNewestIDFirstAndAgainReverses(t *testing.T) {
 }
 
 func TestShiftSReversesTheDefaultOrder(t *testing.T) {
+	t.Parallel()
 	drained := nodeIn("n1", "IDLE", "DRAIN")
 	down := nodeIn("n2", "DOWN")
 	r := startOnNodes(t, drained, down, idle("n3"))
@@ -143,6 +152,7 @@ func TestShiftSReversesTheDefaultOrder(t *testing.T) {
 }
 
 func TestShiftSAfterShiftNGoesBackToTheDefaultOrder(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, nodeIn("a1", "IDLE"), nodeIn("b1", "DOWN"))
 	waitNames(r, "b1 a1")
 
@@ -154,6 +164,7 @@ func TestShiftSAfterShiftNGoesBackToTheDefaultOrder(t *testing.T) {
 }
 
 func TestEnterOnNodeShowsJobsWhoseHostlistHasTheNode(t *testing.T) {
+	t.Parallel()
 	onN2 := runningJob(1)
 	onN2.Nodes = "n[1-3]"
 	elsewhere := runningJob(2)
@@ -176,6 +187,7 @@ func TestEnterOnNodeShowsJobsWhoseHostlistHasTheNode(t *testing.T) {
 }
 
 func TestOOnJobShowsNodesOfItsHostlist(t *testing.T) {
+	t.Parallel()
 	job := runningJob(7)
 	job.Nodes = "n[2-3]"
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
@@ -195,6 +207,7 @@ func TestOOnJobShowsNodesOfItsHostlist(t *testing.T) {
 }
 
 func TestOInTheOverviewJobsPaneShowsNodesOfTheJob(t *testing.T) {
+	t.Parallel()
 	job := runningJob(7)
 	job.Nodes = "n[2-3]"
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
@@ -215,6 +228,7 @@ func TestOInTheOverviewJobsPaneShowsNodesOfTheJob(t *testing.T) {
 }
 
 func TestBadHostlistIsAnErrorThatNamesJobAndValue(t *testing.T) {
+	t.Parallel()
 	bad := runningJob(9)
 	bad.Nodes = "n[1-"
 	r, _ := startOnJobs(t, []fakeslurm.Job{bad})
@@ -226,6 +240,7 @@ func TestBadHostlistIsAnErrorThatNamesJobAndValue(t *testing.T) {
 }
 
 func TestCursorKeysMove(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t, idle("n1"), idle("n2"), idle("n3"))
 	r.waitSelected("n1")
 
@@ -242,6 +257,7 @@ func TestCursorKeysMove(t *testing.T) {
 }
 
 func TestHelpListsTheKeysInGroups(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{runningJob(1)})
 
 	r.send("?")
@@ -258,6 +274,7 @@ func TestHelpListsTheKeysInGroups(t *testing.T) {
 }
 
 func TestQQuitsFromTableViews(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{runningJob(1)}})
 	for _, command := range []string{"", "nodes", "jobs"} {
 		t.Run("view "+command, func(t *testing.T) {
@@ -277,6 +294,7 @@ func TestQQuitsFromTableViews(t *testing.T) {
 }
 
 func TestQGoesBackFromDetailAndHelpAndTypesInInputs(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")

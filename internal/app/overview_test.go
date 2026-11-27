@@ -25,6 +25,7 @@ func startOverviewSized(t *testing.T, width, height int, cluster fakeslurm.Clust
 }
 
 func TestOverviewShowsNodesAboveJobsWithFocusOnNodes(t *testing.T) {
+	t.Parallel()
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(3), Jobs: []fakeslurm.Job{runningJob(1)}})
 	r.waitFor("Nodes 3 ")
 	r.waitFor("Jobs 1 ")
@@ -41,6 +42,7 @@ func TestOverviewShowsNodesAboveJobsWithFocusOnNodes(t *testing.T) {
 }
 
 func TestPaneHeightsFollowTheNodeCountAndTheBody(t *testing.T) {
+	t.Parallel()
 	for _, c := range []struct {
 		width, height, nodes                 int
 		nodesTop, nodesEnd, jobsTop, jobsEnd int
@@ -75,6 +77,7 @@ func TestPaneHeightsFollowTheNodeCountAndTheBody(t *testing.T) {
 }
 
 func TestTabMovesTheFocusAndDimsTheOtherPane(t *testing.T) {
+	t.Parallel()
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(2), Jobs: []fakeslurm.Job{runningJob(1), runningJob(2)}})
 
 	r.send("\t")
@@ -104,6 +107,7 @@ func TestTabMovesTheFocusAndDimsTheOtherPane(t *testing.T) {
 }
 
 func TestEachPaneKeepsItsOwnFilter(t *testing.T) {
+	t.Parallel()
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(3), Jobs: []fakeslurm.Job{runningJob(1), runningJob(2)}})
 
 	r.send("/n0[12]\r")
@@ -114,6 +118,7 @@ func TestEachPaneKeepsItsOwnFilter(t *testing.T) {
 }
 
 func TestEnterOnNodeScopesTheJobsPane(t *testing.T) {
+	t.Parallel()
 	onN02 := runningJob(1)
 	onN02.Nodes = "n[01-02]"
 	failed := endedJob(2, "FAILED")
@@ -141,6 +146,7 @@ func TestEnterOnNodeScopesTheJobsPane(t *testing.T) {
 }
 
 func TestEscInJobsClearsFilterThenScopeThenWarns(t *testing.T) {
+	t.Parallel()
 	jobs := []fakeslurm.Job{runningJob(1), runningJob(2)}
 	for i := range jobs {
 		jobs[i].Nodes = "n01"
@@ -165,6 +171,7 @@ func TestEscInJobsClearsFilterThenScopeThenWarns(t *testing.T) {
 }
 
 func TestRightTextGoesWhenItDoesNotFit(t *testing.T) {
+	t.Parallel()
 	r := startOverviewSized(t, 80, 24, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(3)})
 	r.waitFor("cpu 0% · mem 0%")
 	r.send("/" + strings.Repeat("n", 50) + "\r")
@@ -189,6 +196,7 @@ func (r *run) waitNoHint(text string) {
 }
 
 func TestHintsFollowTheFocusedPaneAndRow(t *testing.T) {
+	t.Parallel()
 	drained := nodeIn("n1", "IDLE", "DRAIN")
 	drained.Reason = "x"
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{drained, nodeIn("n2", "DOWN"), idle("n3")}, Jobs: []fakeslurm.Job{runningJob(1)}})
@@ -215,6 +223,7 @@ func TestHintsFollowTheFocusedPaneAndRow(t *testing.T) {
 }
 
 func TestActionKeysInTheWrongPaneNameThePaneToFocus(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(1), Jobs: []fakeslurm.Job{runningJob(1)}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Jobs 1 ")
@@ -234,6 +243,7 @@ func TestActionKeysInTheWrongPaneNameThePaneToFocus(t *testing.T) {
 }
 
 func TestFullScreenViewsAndOverviewCommand(t *testing.T) {
+	t.Parallel()
 	job := runningJob(1234)
 	job.Nodes = "n[02-03]"
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(3), Jobs: []fakeslurm.Job{job}})
@@ -269,6 +279,7 @@ func TestFullScreenViewsAndOverviewCommand(t *testing.T) {
 }
 
 func TestDescribeFromAPaneGoesBackWithTheSameFocusAndRow(t *testing.T) {
+	t.Parallel()
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(2), Jobs: []fakeslurm.Job{runningJob(1), runningJob(2), runningJob(3)}})
 	r.send("\tj")
 	r.waitSelected("2")

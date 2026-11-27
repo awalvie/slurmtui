@@ -56,6 +56,7 @@ func endedJob(id int32, state ...string) fakeslurm.Job {
 }
 
 func TestJobColumnsFollowSqueue(t *testing.T) {
+	t.Parallel()
 	job := runningJob(1234)
 	job.Partition = "gpu"
 	job.Name = "train"
@@ -87,6 +88,7 @@ func TestJobColumnsFollowSqueue(t *testing.T) {
 }
 
 func TestTimeLeftIsTheLimitMinusTheElapsedTime(t *testing.T) {
+	t.Parallel()
 	withLimit := func(j fakeslurm.Job, limit fakeslurm.NoVal) fakeslurm.Job {
 		j.TimeLimit = limit
 		return j
@@ -129,6 +131,7 @@ func TestTimeLeftIsTheLimitMinusTheElapsedTime(t *testing.T) {
 }
 
 func TestJobIDUsesSqueueForm(t *testing.T) {
+	t.Parallel()
 	plain := runningJob(1234)
 
 	arrayMeta := pendingJob(1300, "Resources")
@@ -155,6 +158,7 @@ func TestJobIDUsesSqueueForm(t *testing.T) {
 }
 
 func TestJobStateFlagHasPriorityOverBase(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		id    int32
 		state []string
@@ -183,6 +187,7 @@ func TestJobStateFlagHasPriorityOverBase(t *testing.T) {
 }
 
 func TestNodeListShowsReasonForPendingAndFailedJobs(t *testing.T) {
+	t.Parallel()
 	pending := pendingJob(1, "Priority")
 	described := pendingJob(2, "Resources")
 	described.StateDescription = "waiting for n1"
@@ -211,6 +216,7 @@ func TestNodeListShowsReasonForPendingAndFailedJobs(t *testing.T) {
 }
 
 func TestJobTimeIsElapsedOrTheWaitOfAPendingJob(t *testing.T) {
+	t.Parallel()
 	running := runningJob(1)
 	running.StartTime = fakeslurm.Time(startTime.Add(-90 * time.Second))
 	pending := pendingJob(2, "Priority")
@@ -243,6 +249,7 @@ func TestJobTimeIsElapsedOrTheWaitOfAPendingJob(t *testing.T) {
 }
 
 func TestEndedJobsAreDim(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{
 		runningJob(1),
 		pendingJob(2, "Priority"),
@@ -260,6 +267,7 @@ func TestEndedJobsAreDim(t *testing.T) {
 }
 
 func TestJobsSortPendingByPriorityThenRunningThenEnded(t *testing.T) {
+	t.Parallel()
 	pending := func(id int32, priority int64) fakeslurm.Job {
 		j := pendingJob(id, "Priority")
 		j.Priority = fakeslurm.Number(priority)
@@ -283,6 +291,7 @@ func TestJobsSortPendingByPriorityThenRunningThenEnded(t *testing.T) {
 }
 
 func TestCursorFollowsJobAcrossRefresh(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(3), runningJob(2), runningJob(1)})
 	r.waitSelected("3")
 	r.send("j")
@@ -299,6 +308,7 @@ func TestCursorFollowsJobAcrossRefresh(t *testing.T) {
 }
 
 func TestUnknownJobStateIsAnError(t *testing.T) {
+	t.Parallel()
 	odd := runningJob(42)
 	odd.JobState = []string{"RUNNING", "SPARKLING"}
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{odd}})
@@ -310,6 +320,7 @@ func TestUnknownJobStateIsAnError(t *testing.T) {
 }
 
 func TestJobsAreFetchedWithNodesEachRefresh(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")

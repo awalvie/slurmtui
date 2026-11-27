@@ -23,7 +23,8 @@ func (r *run) waitPopupText(title, want string) {
 	r.waitFor("┌ " + title + " ")
 	r.waitUntil(title+" pop-up with "+want, func() bool {
 		b := r.dialogBox(title + " ")
-		return strings.Contains(strings.Join(strings.Fields(strings.Join(r.dialogRows(b), " ")), " "), want)
+		squash := func(s string) string { return strings.Join(strings.Fields(s), "") }
+		return strings.Contains(squash(strings.Join(r.dialogRows(b), "")), squash(want))
 	})
 }
 
@@ -41,6 +42,7 @@ func (r *run) checkErrorPopup(b dialogBox) {
 }
 
 func TestRefusedActionOpensErrorPopup(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name    string
 		keys    string
@@ -108,6 +110,7 @@ func TestRefusedActionOpensErrorPopup(t *testing.T) {
 }
 
 func TestRefusedCancelOpensErrorPopup(t *testing.T) {
+	t.Parallel()
 	cases := []struct{ reply, want string }{
 		{"job-cancel-not-owner-reply.json", "Access/permission denied"},
 		{"job-cancel-finished-reply.json", "Job/step already completing or completed"},
@@ -133,6 +136,7 @@ func TestRefusedCancelOpensErrorPopup(t *testing.T) {
 }
 
 func TestRefreshErrorOpensPopupOnce(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")

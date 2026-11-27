@@ -13,6 +13,7 @@ func idle(name string) fakeslurm.Node {
 }
 
 func TestNodesViewListsNodeNames(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
 		Name:    "lamp",
 		Version: fakeslurm.Version{Major: "26", Minor: "05", Micro: "5"},
@@ -42,6 +43,7 @@ func TestNodesViewListsNodeNames(t *testing.T) {
 }
 
 func TestNodeStateUsesSinfoLabels(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name  string
 		state []string
@@ -111,6 +113,7 @@ func TestNodeStateUsesSinfoLabels(t *testing.T) {
 }
 
 func TestNodeColumnsShowUsageAndReason(t *testing.T) {
+	t.Parallel()
 	now := time.Date(2026, 11, 26, 12, 0, 0, 0, time.UTC)
 	drained := fakeslurm.Node{
 		Name: "n02", State: []string{"MIXED", "DRAIN"},
@@ -162,6 +165,7 @@ func TestNodeColumnsShowUsageAndReason(t *testing.T) {
 }
 
 func TestNodesSortBySeverityThenNaturallyByName(t *testing.T) {
+	t.Parallel()
 	r := startOnNodes(t,
 		idle("n10"), idle("n2"),
 		nodeIn("off", "IDLE", "POWERED_DOWN"),
@@ -177,6 +181,7 @@ func TestNodesSortBySeverityThenNaturallyByName(t *testing.T) {
 }
 
 func TestNodeStateColourComesFromStateFlags(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name  string
 		state []string
@@ -207,6 +212,7 @@ func TestNodeStateColourComesFromStateFlags(t *testing.T) {
 }
 
 func TestUnknownNodeStateIsAnError(t *testing.T) {
+	t.Parallel()
 	n := idle("n-odd")
 	n.State = []string{"IDLE", "SPARKLING"}
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{n}})
@@ -214,20 +220,22 @@ func TestUnknownNodeStateIsAnError(t *testing.T) {
 
 	r := startProvided(t, cluster)
 
-	r.waitFor(`/slurm/v0.0.45/nodes: node "n-odd": state: unknown value "SPARKLING"`)
+	r.waitPopupText("Refresh failed", `/slurm/v0.0.45/nodes: node "n-odd": state: unknown value "SPARKLING"`)
 }
 
 func TestErrorBaseStateIsAnError(t *testing.T) {
+	t.Parallel()
 	n := idle("n-err")
 	n.State = []string{"ERROR"}
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{n}})
 
 	r := startProvided(t, cluster)
 
-	r.waitFor(`node "n-err": state: unknown value "ERROR"`)
+	r.waitPopupText("Refresh failed", `node "n-err": state: unknown value "ERROR"`)
 }
 
 func TestReasonWithoutUserShowsBlankBy(t *testing.T) {
+	t.Parallel()
 	n := idle("n-anon")
 	n.State = []string{"IDLE", "DRAIN"}
 	n.Reason = "slurmctld reason"
@@ -244,6 +252,7 @@ func TestReasonWithoutUserShowsBlankBy(t *testing.T) {
 }
 
 func TestInfiniteReasonTimeIsAnError(t *testing.T) {
+	t.Parallel()
 	n := idle("n-inf")
 	n.Reason = "odd"
 	n.ReasonChangedAt = fakeslurm.NoVal{Set: true, Infinite: true}
@@ -251,10 +260,11 @@ func TestInfiniteReasonTimeIsAnError(t *testing.T) {
 
 	r := startProvided(t, cluster)
 
-	r.waitFor(`node "n-inf": reason_changed_at: infinite`)
+	r.waitPopupText("Refresh failed", `node "n-inf": reason_changed_at: infinite`)
 }
 
 func TestReasonTimeInTheFutureShowsNegativeAge(t *testing.T) {
+	t.Parallel()
 	n := idle("n-skew")
 	n.State = []string{"IDLE", "DRAIN"}
 	n.Reason = "clock skew"
@@ -271,6 +281,7 @@ func TestReasonTimeInTheFutureShowsNegativeAge(t *testing.T) {
 }
 
 func TestGresShowsGPUsInUseOverGPUsConfigured(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name, gres, used, want string
 	}{
@@ -298,6 +309,7 @@ func TestGresShowsGPUsInUseOverGPUsConfigured(t *testing.T) {
 }
 
 func TestGresThatDoesNotParseIsAnError(t *testing.T) {
+	t.Parallel()
 	odd := idle("n7")
 	odd.Gres = "gpu:a100:four"
 	r := startOnNodes(t, idle("n1"), odd)

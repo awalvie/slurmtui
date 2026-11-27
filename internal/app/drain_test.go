@@ -66,6 +66,7 @@ func startOnSecondNode(t *testing.T, nodes ...fakeslurm.Node) (*fakeslurm.Server
 }
 
 func TestDrainOpensDialogWithReasonFocused(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("D")
@@ -77,6 +78,7 @@ func TestDrainOpensDialogWithReasonFocused(t *testing.T) {
 }
 
 func TestDrainSendsStateAndReasonAndRefreshesAtOnce(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("D")
@@ -90,6 +92,7 @@ func TestDrainSendsStateAndReasonAndRefreshesAtOnce(t *testing.T) {
 }
 
 func TestDrainRefusesEmptyReason(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("D")
@@ -107,6 +110,7 @@ func TestDrainRefusesEmptyReason(t *testing.T) {
 }
 
 func TestDrainKeepClosesWithoutRequest(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("D")
@@ -122,6 +126,7 @@ func TestDrainKeepClosesWithoutRequest(t *testing.T) {
 }
 
 func TestResumeDialogFocusesKeep(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), drained("n02", "bad DIMM", "bob", startTime.Add(-(2*time.Hour+3*time.Minute))))
 
 	r.send("U")
@@ -137,6 +142,7 @@ func TestResumeDialogFocusesKeep(t *testing.T) {
 }
 
 func TestResumeSendsResume(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), drained("n02", "bad DIMM", "bob", startTime))
 
 	r.send("U")
@@ -151,6 +157,7 @@ func TestResumeSendsResume(t *testing.T) {
 }
 
 func TestRefreshPausesWhileDialogIsOpen(t *testing.T) {
+	t.Parallel()
 	cluster, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 	r.send("D")
 	r.waitFor("Drain n02 on")
@@ -170,6 +177,7 @@ func TestRefreshPausesWhileDialogIsOpen(t *testing.T) {
 }
 
 func TestInfoFlashClearsAfterSixSeconds(t *testing.T) {
+	t.Parallel()
 	_, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 	r.send("D")
 	r.waitFor("▸ Reason")

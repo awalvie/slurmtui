@@ -50,6 +50,7 @@ func wantMode(t *testing.T, path string, want os.FileMode) {
 }
 
 func TestSetupFormWithEnvVarSavesContextAndOpensNodes(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := filepath.Join(t.TempDir(), "slurmtui")
 	r := start(t, nil, map[string]string{"SLURMTUI_CONFIG_DIR": dir, "SLURM_JWT": aliceToken})
@@ -70,6 +71,7 @@ func TestSetupFormWithEnvVarSavesContextAndOpensNodes(t *testing.T) {
 }
 
 func TestSetupFormOpensWithFlagValuesFilledIn(t *testing.T) {
+	t.Parallel()
 	r := start(t, []string{"--url", "http://127.0.0.1:6820", "--user", "alice"}, nil)
 
 	r.waitFor("Connect to Slurm")
@@ -80,6 +82,7 @@ func TestSetupFormOpensWithFlagValuesFilledIn(t *testing.T) {
 }
 
 func TestSetupFormShowsAFailedFieldCheckAndStaysOpen(t *testing.T) {
+	t.Parallel()
 	r := start(t, nil, map[string]string{"SLURM_JWT": aliceToken})
 	r.waitFor("Connect to Slurm")
 
@@ -91,6 +94,7 @@ func TestSetupFormShowsAFailedFieldCheckAndStaysOpen(t *testing.T) {
 }
 
 func TestSetupFormShowsAPingFailureAndStaysOpen(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	cluster.SetErrors("Unable to contact slurmctld")
 	dir := filepath.Join(t.TempDir(), "slurmtui")
@@ -121,6 +125,7 @@ func TestSetupFormShowsAPingFailureAndStaysOpen(t *testing.T) {
 }
 
 func TestSetupFormShowsATLSFailure(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.StartTLS(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	home := t.TempDir()
 	writeFile(t, filepath.Join(home, "ca.pem"), cluster.CertPEM)
@@ -135,6 +140,7 @@ func TestSetupFormShowsATLSFailure(t *testing.T) {
 }
 
 func TestSetupFormWithKeyFileSavesOnlyThePath(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	clk := clock.NewFake(startTime)
 	cluster.RequireSignedTokens(fakeClusterKey, clk)
@@ -158,6 +164,7 @@ func TestSetupFormWithKeyFileSavesOnlyThePath(t *testing.T) {
 }
 
 func TestSetupFormExplainsARefusedSignedToken(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	clk := clock.NewFake(startTime)
 	cluster.RequireSignedTokens([]byte("another-cluster-key"), clk)
@@ -185,6 +192,7 @@ slurmtui:
 `
 
 func TestSetupFormAddsAContextAndKeepsTheRestOfTheFile(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := configDir(t, commentedConfig)
 	r := start(t, []string{"--url", cluster.URL}, map[string]string{"SLURMTUI_CONFIG_DIR": dir, "SLURM_JWT_LAB": aliceToken})
@@ -204,6 +212,7 @@ func TestSetupFormAddsAContextAndKeepsTheRestOfTheFile(t *testing.T) {
 }
 
 func TestSetupFormWithPastedTokenSavesNothing(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := filepath.Join(t.TempDir(), "slurmtui")
 	r := start(t, []string{"--url", cluster.URL}, map[string]string{"SLURMTUI_CONFIG_DIR": dir})
@@ -226,6 +235,7 @@ func TestSetupFormWithPastedTokenSavesNothing(t *testing.T) {
 }
 
 func TestSetupFormQuitAndCtrlCExitWithZero(t *testing.T) {
+	t.Parallel()
 	for name, keys := range map[string]string{"quit button": shiftTab + enter, "ctrl-c": "\x03"} {
 		t.Run(name, func(t *testing.T) {
 			r := start(t, nil, nil)
@@ -241,6 +251,7 @@ func TestSetupFormQuitAndCtrlCExitWithZero(t *testing.T) {
 }
 
 func TestSavedContextOpensNodesOnTheNextStart(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	dir := filepath.Join(t.TempDir(), "slurmtui")
 	env := map[string]string{"SLURMTUI_CONFIG_DIR": dir, "SLURM_JWT": aliceToken}
@@ -265,8 +276,10 @@ func TestSavedContextOpensNodesOnTheNextStart(t *testing.T) {
 }
 
 func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
+	t.Parallel()
 	r := start(t, nil, map[string]string{"SLURM_JWT": aliceToken})
 	r.waitFor("Connect to Slurm")
+	r.waitUntil("the form in the centre", func() bool { return r.dialogBox("Connect to Slurm").x == (r.width-64)/2 })
 
 	b := r.dialogBox("Connect to Slurm")
 	if b.width != 64 || b.x != (r.width-64)/2 {
@@ -320,6 +333,7 @@ func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
 }
 
 func TestSetupFormTypesQ(t *testing.T) {
+	t.Parallel()
 	r := start(t, nil, map[string]string{"SLURM_JWT": aliceToken})
 	r.waitFor("Connect to Slurm")
 

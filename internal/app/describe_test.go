@@ -38,6 +38,7 @@ func describeRow(key, value string) string {
 }
 
 func TestDescribeNodeShowsAllItsData(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n01"), describedNode()}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 2 ")
@@ -74,6 +75,7 @@ func TestDescribeNodeShowsAllItsData(t *testing.T) {
 }
 
 func TestDescribeStylesKeysEmptyValuesStatesAndGroups(t *testing.T) {
+	t.Parallel()
 	n := describedNode()
 	n.Features = nil
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{n}})
@@ -113,6 +115,7 @@ func TestDescribeStylesKeysEmptyValuesStatesAndGroups(t *testing.T) {
 }
 
 func TestYShowsRawNodeJSONFormatted(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{describedNode()}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -125,6 +128,7 @@ func TestYShowsRawNodeJSONFormatted(t *testing.T) {
 }
 
 func TestYShowsRawJobJSON(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{describedJob()})
 
 	r.send("y")
@@ -136,6 +140,7 @@ func TestYShowsRawJobJSON(t *testing.T) {
 }
 
 func TestDescribeUpdatesAtEachRefresh(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{describedNode()}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")
@@ -151,6 +156,7 @@ func TestDescribeUpdatesAtEachRefresh(t *testing.T) {
 }
 
 func TestRawJSONScrolls(t *testing.T) {
+	t.Parallel()
 	nodes := make([]string, 60)
 	for i := range nodes {
 		nodes[i] = fmt.Sprintf("p%02d", i)
@@ -198,6 +204,7 @@ func describedJob() fakeslurm.Job {
 }
 
 func TestDescribeJobShowsAllItsData(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{describedJob()})
 
 	r.send("d")
@@ -237,6 +244,7 @@ func TestDescribeJobShowsAllItsData(t *testing.T) {
 }
 
 func TestEnterOnJobDescribesIt(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{describedJob()})
 
 	r.send("\r")
@@ -245,6 +253,7 @@ func TestEnterOnJobDescribesIt(t *testing.T) {
 }
 
 func TestJobTimeLimitForms(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		limit fakeslurm.NoVal
 		want  string
@@ -265,6 +274,7 @@ func TestJobTimeLimitForms(t *testing.T) {
 }
 
 func TestDescribePendingJobShowsDependencyAndRequestedTRES(t *testing.T) {
+	t.Parallel()
 	j := pendingJob(9, "Dependency")
 	j.Dependency = "afterok:8(unfulfilled)"
 	j.TRESRequested = "cpu=4,mem=8G,node=1,billing=4"
@@ -277,6 +287,7 @@ func TestDescribePendingJobShowsDependencyAndRequestedTRES(t *testing.T) {
 }
 
 func TestDescribePendingJobWithNoExpectedStartShowsADash(t *testing.T) {
+	t.Parallel()
 	j := pendingJob(9, "Priority")
 	j.StartTime = fakeslurm.NoVal{Set: false, Infinite: true}
 	r, _ := startOnJobs(t, []fakeslurm.Job{j})
@@ -287,6 +298,7 @@ func TestDescribePendingJobWithNoExpectedStartShowsADash(t *testing.T) {
 }
 
 func TestDescribePendingJobShowsWaitAndExpectedStart(t *testing.T) {
+	t.Parallel()
 	j := pendingJob(9, "Priority")
 	j.SubmitTime = fakeslurm.Time(startTime.Add(-5 * time.Minute))
 	r, _ := startOnJobs(t, []fakeslurm.Job{j})
@@ -300,6 +312,7 @@ func TestDescribePendingJobShowsWaitAndExpectedStart(t *testing.T) {
 }
 
 func TestRawJSONColoursKeysStringsNumbersAndPunctuation(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{describedNode()}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 1 ")

@@ -67,6 +67,7 @@ func (r *run) stateCellStyle(name string) (string, uv.Style) {
 }
 
 func TestStateCellsShowGlyphAndClassColour(t *testing.T) {
+	t.Parallel()
 	r := startProvided(t, fakeslurm.Start(t, classFixture()))
 	r.waitFor("┌ Nodes 7 ")
 
@@ -147,6 +148,7 @@ func TestStateCellsShowGlyphAndClassColour(t *testing.T) {
 }
 
 func TestCursorRowIsReversedWithoutStateColour(t *testing.T) {
+	t.Parallel()
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("a0"), nodeIn("n-down", "DOWN")}}))
 	r.waitFor("┌ Nodes 2 ")
 	r.moveTo("n-down")
@@ -168,6 +170,7 @@ func TestCursorRowIsReversedWithoutStateColour(t *testing.T) {
 }
 
 func TestFramesAreSquareAndOnTheGrid(t *testing.T) {
+	t.Parallel()
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n01"), idle("n02"), idle("n03")}}))
 	r.waitFor("┌ Nodes 3 ")
 
@@ -201,6 +204,7 @@ func TestFramesAreSquareAndOnTheGrid(t *testing.T) {
 }
 
 func TestTitlesNameCountScopeAndFilter(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
 		Name:  "lamp",
 		Nodes: []fakeslurm.Node{idle("n01"), idle("n02"), idle("n10")},
@@ -246,6 +250,7 @@ func TestTitlesNameCountScopeAndFilter(t *testing.T) {
 }
 
 func TestNodesTitleCountsProblemsAndAllocationOfUsableNodes(t *testing.T) {
+	t.Parallel()
 	node := func(name string, allocCPUs int, allocMem int64, state ...string) fakeslurm.Node {
 		n := nodeIn(name, state...)
 		n.AllocCPUs, n.AllocMemory = allocCPUs, allocMem
@@ -278,6 +283,7 @@ func TestNodesTitleCountsProblemsAndAllocationOfUsableNodes(t *testing.T) {
 }
 
 func TestJobsTitleCountsRunningAndPendingRows(t *testing.T) {
+	t.Parallel()
 	r, _ := startOnJobs(t, []fakeslurm.Job{
 		runningJob(1),
 		jobIn(2, "CANCELLED", "COMPLETING"),
@@ -292,6 +298,7 @@ func TestJobsTitleCountsRunningAndPendingRows(t *testing.T) {
 }
 
 func TestStateIsAsWideAsTheWidestStateInThePane(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 2 ")
@@ -318,6 +325,7 @@ func TestStateIsAsWideAsTheWidestStateInThePane(t *testing.T) {
 }
 
 func TestIDIsAsWideAsTheWidestIDInThePane(t *testing.T) {
+	t.Parallel()
 	var jobs []fakeslurm.Job
 	for i := range int32(70) {
 		id := 1069 - i
@@ -348,6 +356,7 @@ func TestIDIsAsWideAsTheWidestIDInThePane(t *testing.T) {
 }
 
 func TestLongCellsAreCutInsideTheFrame(t *testing.T) {
+	t.Parallel()
 	long := strings.Repeat("r", 200)
 	node := nodeIn("n1", "IDLE", "DRAIN")
 	node.Reason = long
@@ -370,6 +379,7 @@ func TestLongCellsAreCutInsideTheFrame(t *testing.T) {
 }
 
 func TestLastColumnFillsTheFrameAndCutsWithoutASpace(t *testing.T) {
+	t.Parallel()
 	long := strings.Repeat("r", 200)
 	odd, even := jobIn(7, "PENDING"), jobIn(8, "PENDING")
 	odd.StateReason, even.StateReason = long, long
@@ -404,6 +414,7 @@ func (r *run) checkFrameEdges(title string) {
 }
 
 func TestSortArrowFollowsTheSortedColumn(t *testing.T) {
+	t.Parallel()
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
 	r.waitFor("STATE ↑")
@@ -414,6 +425,7 @@ func TestSortArrowFollowsTheSortedColumn(t *testing.T) {
 }
 
 func TestHeaderInfoRows(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Version: fakeslurm.Version{Major: "26", Minor: "05", Micro: "5"}, Nodes: []fakeslurm.Node{idle("n1")}})
 	r := start(t, []string{"--url", cluster.URL, "--readonly"}, map[string]string{"SLURM_JWT": providedToken("root", startTime.Add(time.Hour))})
 	r.waitFor("┌ Nodes 1 ")
@@ -440,6 +452,7 @@ func TestHeaderInfoRows(t *testing.T) {
 }
 
 func TestHeaderShowsNoExpiresWithSignedToken(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
@@ -474,6 +487,7 @@ func wantGrid(t *testing.T, got, want []string) {
 }
 
 func TestHintGridShowsKeysOfTheView(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("┌ Nodes 1 ")
@@ -511,6 +525,7 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 }
 
 func TestHintGridStartsNextToTheWidestInfoRowAndEndsInsideTheFrames(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	context := "  Context  " + contextOf(cluster)
 	for _, c := range []struct {
@@ -550,6 +565,7 @@ func TestHintGridStartsNextToTheWidestInfoRowAndEndsInsideTheFrames(t *testing.T
 }
 
 func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
 	r := startReadOnly(t, cluster)
 	header := strings.Join(r.lines()[:5], "\n")
@@ -566,6 +582,7 @@ func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 }
 
 func TestLogoShowsOnlyWhenItFits(t *testing.T) {
+	t.Parallel()
 	logoRow := " ▄▄█▄▄"
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
@@ -620,6 +637,7 @@ func (r *run) flashStyle(text string) uv.Style {
 }
 
 func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	release := cluster.Hold()
 	r := startProvided(t, cluster)
@@ -649,6 +667,7 @@ func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
 	r.waitUntil("stale freshness", func() bool { return strings.HasSuffix(r.bottomLine(), "○ stale 5s") })
 	r.advance(5 * time.Second)
 	r.waitUntil("stale freshness", func() bool { return strings.HasSuffix(r.bottomLine(), "○ stale 10s") })
+	r.send(escKey)
 	r.waitUntil("error flash", func() bool { return strings.Contains(r.bottomLine(), "HTTP 500") })
 	if !isANSI(r.flashStyle("HTTP 500").Fg, ansiRed) {
 		t.Fatalf("error flash is not red: %q", r.bottomLine())
@@ -659,6 +678,7 @@ func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
 }
 
 func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
+	t.Parallel()
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
 	r.send("/n")
@@ -674,6 +694,7 @@ func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
 }
 
 func TestBodyHeightFollowsTheTerminal(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	tall := startProvided(t, cluster)
 	tall.waitFor("┌ Nodes 1 ")
@@ -698,6 +719,7 @@ func TestBodyHeightFollowsTheTerminal(t *testing.T) {
 var sgr = regexp.MustCompile(`\x1b\[([0-9;:]*)m`)
 
 func TestOutputUsesOnlyANSIColours(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, classFixture())
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 7 ")

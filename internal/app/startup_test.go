@@ -8,6 +8,7 @@ import (
 )
 
 func TestColonQAndCtrlCQuit(t *testing.T) {
+	t.Parallel()
 	for name, keys := range map[string]string{":q": ":q\r", "ctrl-c": "\x03"} {
 		t.Run(name, func(t *testing.T) {
 			cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{{Name: "n01", State: []string{"IDLE"}}}})
@@ -24,6 +25,7 @@ func TestColonQAndCtrlCQuit(t *testing.T) {
 }
 
 func TestHelpFlagPrintsTheFlagsAndExitsZero(t *testing.T) {
+	t.Parallel()
 	for _, flag := range []string{"-h", "--help"} {
 		t.Run(flag, func(t *testing.T) {
 			r := start(t, []string{flag}, nil)

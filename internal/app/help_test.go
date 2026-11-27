@@ -20,6 +20,7 @@ var legendGroups = []struct {
 }
 
 func TestHelpIsACentredPopUp(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 2 ")
@@ -97,6 +98,7 @@ func TestHelpIsACentredPopUp(t *testing.T) {
 }
 
 func TestHelpNeverCoversTheHeader(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	for _, size := range []struct{ width, height int }{{160, 50}, {120, 40}, {80, 24}} {
 		r := startSizedOn(t, cluster, size.width, size.height)
@@ -116,6 +118,7 @@ func TestHelpNeverCoversTheHeader(t *testing.T) {
 }
 
 func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := startSizedOn(t, cluster, 80, 24)
 	r.waitFor("┌ Nodes 1 ")
@@ -155,6 +158,7 @@ func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 }
 
 func TestKeyThatDoesNothingSaysSo(t *testing.T) {
+	t.Parallel()
 	_, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send("x")
@@ -168,6 +172,7 @@ func TestKeyThatDoesNothingSaysSo(t *testing.T) {
 }
 
 func TestUnknownCommandSaysSo(t *testing.T) {
+	t.Parallel()
 	_, r := startOnSecondNode(t, idle("n01"), idle("n02"))
 
 	r.send(":xyz\r")

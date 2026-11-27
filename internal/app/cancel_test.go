@@ -12,6 +12,7 @@ import (
 const ctrlD = "\x04"
 
 func TestCancelOpensDialogWithKeepFocused(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(1234)})
 	r.waitSelected("1234")
 
@@ -61,6 +62,7 @@ func (r *run) confirmCancel() {
 }
 
 func TestCancelTargetFollowsArrayAndHetRules(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name  string
 		job   fakeslurm.Job
@@ -98,6 +100,7 @@ func TestCancelTargetFollowsArrayAndHetRules(t *testing.T) {
 }
 
 func TestCancelFlashesAcceptedAndRefreshesAtOnce(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(1234)})
 	r.waitSelected("1234")
 
@@ -111,6 +114,7 @@ func TestCancelFlashesAcceptedAndRefreshesAtOnce(t *testing.T) {
 }
 
 func TestCancelKeepClosesWithoutRequest(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(1234)})
 	r.waitSelected("1234")
 
@@ -129,6 +133,7 @@ func TestCancelKeepClosesWithoutRequest(t *testing.T) {
 }
 
 func TestCancelDialogFixesTargetAndPausesRefresh(t *testing.T) {
+	t.Parallel()
 	r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(1234)})
 	r.waitSelected("1234")
 	r.send(ctrlD)

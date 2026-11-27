@@ -15,6 +15,7 @@ const (
 )
 
 func TestReadOnlyFlagShowsBadgeAfterContextName(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
 	r := startReadOnly(t, cluster)
@@ -34,6 +35,7 @@ func readOnlyConfig(global, context, url string) string {
 }
 
 func TestReadOnlyOrderIsFlagThenContextThenGlobal(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		name     string
 		global   string
@@ -77,6 +79,7 @@ func TestReadOnlyOrderIsFlagThenContextThenGlobal(t *testing.T) {
 }
 
 func TestReadOnlyGlobalSettingAppliesToContextFromFlags(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
 	r := start(t, []string{"--url", cluster.URL}, map[string]string{
@@ -89,12 +92,14 @@ func TestReadOnlyGlobalSettingAppliesToContextFromFlags(t *testing.T) {
 }
 
 func TestReadOnlyAndWriteFlagsTogetherAreAStartupError(t *testing.T) {
+	t.Parallel()
 	stderr := startupError(t, []string{"--readonly", "--write", "--url", "http://127.0.0.1:6820"}, map[string]string{"SLURM_JWT": aliceToken})
 
 	wantStderr(t, stderr, "--readonly and --write")
 }
 
 func TestReadOnlySetupFormPingsAndOpensNodesInReadOnlyMode(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 	r := start(t, []string{"--readonly"}, map[string]string{"SLURM_JWT": aliceToken})
 	r.waitFor("Connect to Slurm")
@@ -113,6 +118,7 @@ func TestReadOnlySetupFormPingsAndOpensNodesInReadOnlyMode(t *testing.T) {
 }
 
 func TestReadOnlyHelpHidesActionKeys(t *testing.T) {
+	t.Parallel()
 	for _, v := range []struct{ open, title string }{{"", "┌ Help "}, {"\t", "┌ Help "}} {
 		cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{runningJob(1234)}})
 		r := startReadOnly(t, cluster)
@@ -132,6 +138,7 @@ func writeRequests(cluster *fakeslurm.Server) []fakeslurm.Request {
 }
 
 func TestReadOnlyActionKeysOpenNoDialogAndSendNoWriteInAnyView(t *testing.T) {
+	t.Parallel()
 	views := []struct {
 		name  string
 		open  string
@@ -182,6 +189,7 @@ func TestReadOnlyActionKeysOpenNoDialogAndSendNoWriteInAnyView(t *testing.T) {
 }
 
 func TestReadOnlyActionKeyInTheOtherPaneSaysReadOnly(t *testing.T) {
+	t.Parallel()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{runningJob(1234)}})
 	r := startReadOnly(t, cluster)
 
