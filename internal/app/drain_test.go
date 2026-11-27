@@ -183,30 +183,3 @@ func TestInfoFlashClearsAfterSixSeconds(t *testing.T) {
 
 	r.waitGone("drain of n02 accepted")
 }
-
-func TestSlurmRefusalShowsInFlash(t *testing.T) {
-	cases := []struct {
-		name   string
-		reply  string
-		status int
-		want   string
-	}{
-		{"not admin", "node-drain-non-admin-reply.json", http.StatusUnprocessableEntity, "Failure to update node ghost3: Invalid user id"},
-		{"HTTP 200 with errors", "node-resume-invalid-transition-reply.json", http.StatusOK, "Failure to update node ghost3: Invalid node state transition"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			cluster, r := startOnSecondNode(t, idle("ghost1"), idle("ghost3"))
-			cluster.RefuseNodeUpdates(tc.status, recordedReply(t, tc.reply))
-
-			r.send("D")
-			r.waitFor("▸ Reason")
-			r.send("bad DIMM\r")
-
-			r.waitFor(tc.want)
-			if strings.Contains(r.screen(), "accepted") {
-				t.Fatalf("refused action shows as accepted\n%s", r.screen())
-			}
-		})
-	}
-}

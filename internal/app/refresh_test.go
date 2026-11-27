@@ -94,6 +94,8 @@ func TestFailedRefreshKeepsRowsAndShowsError(t *testing.T) {
 	r.waitFor("○ stale 10s")
 	r.waitFor("HTTP 500")
 
+	r.send(escKey)
+	r.waitGone("┌ Refresh failed ")
 	cluster.SetStatus(http.StatusOK)
 	r.advance(5 * time.Second)
 	r.waitFor("● 0s")

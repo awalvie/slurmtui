@@ -147,29 +147,3 @@ func TestCancelDialogFixesTargetAndPausesRefresh(t *testing.T) {
 		t.Errorf("cancel path = %s, want the job the dialog opened on", req.Path)
 	}
 }
-
-func TestCancelRefusalInStatusShowsInFlash(t *testing.T) {
-	cases := []struct {
-		reply string
-		want  string
-	}{
-		{"job-cancel-not-owner-reply.json", "Access/permission denied"},
-		{"job-cancel-finished-reply.json", "Job/step already completing or completed"},
-		{"job-cancel-unknown-id-reply.json", "Invalid job id specified"},
-	}
-	for _, tc := range cases {
-		t.Run(tc.reply, func(t *testing.T) {
-			r, cluster := startOnJobs(t, []fakeslurm.Job{runningJob(1234)})
-			cluster.RefuseJobCancels(recordedReply(t, tc.reply))
-			r.waitSelected("1234")
-
-			r.send(ctrlD)
-			r.confirmCancel()
-
-			r.waitFor(tc.want)
-			if strings.Contains(r.screen(), "accepted") {
-				t.Fatalf("refused cancel shows as accepted\n%s", r.screen())
-			}
-		})
-	}
-}

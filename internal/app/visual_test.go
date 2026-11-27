@@ -649,7 +649,7 @@ func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
 	r.waitUntil("stale freshness", func() bool { return strings.HasSuffix(r.bottomLine(), "○ stale 5s") })
 	r.advance(5 * time.Second)
 	r.waitUntil("stale freshness", func() bool { return strings.HasSuffix(r.bottomLine(), "○ stale 10s") })
-	r.waitFor("HTTP 500")
+	r.waitUntil("error flash", func() bool { return strings.Contains(r.bottomLine(), "HTTP 500") })
 	if !isANSI(r.flashStyle("HTTP 500").Fg, ansiRed) {
 		t.Fatalf("error flash is not red: %q", r.bottomLine())
 	}

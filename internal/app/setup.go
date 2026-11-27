@@ -145,7 +145,7 @@ func newClient(ctx config.Context, source auth.Source) (*slurm.Client, error) {
 }
 
 func session(ctx config.Context, source auth.Source, readOnly bool) ui.Session {
-	return ui.Session{Context: ctx.Name, User: source.User(), Expires: source.Expires(), ReadOnly: readOnly}
+	return ui.Session{Context: ctx.Name, URL: ctx.URL, User: source.User(), Expires: source.Expires(), ReadOnly: readOnly}
 }
 
 var errReadOnly = errors.New("read-only mode: slurmtui sends no change to Slurm")

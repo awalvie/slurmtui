@@ -65,7 +65,7 @@ Colour is never the only signal. Each state has a glyph and a word. Focus has th
 | `focus` | 4 (blue) | the border of the focused frame, the name in its title (bold), the `▌` of the focused pane (bold), Resume dialog, help, describe, raw JSON, setup form |
 | `ok` | 2 (green) | running jobs, allocated and mixed nodes, info flash, the `●` of freshness, JSON strings |
 | `warn` | 3 (yellow) | drained and draining nodes (bold), Drain dialog, `[read-only]` (bold), warning flash, `○` of stale freshness, JSON numbers and booleans |
-| `bad` | 1 (red) | down nodes (bold), failed jobs, Cancel dialog, error flash, field errors, `User root` (bold) |
+| `bad` | 1 (red) | down nodes (bold), failed jobs, Cancel dialog, error pop-up, error flash, field errors, `User root` (bold) |
 | `accent` | 6 (cyan) | completing jobs, filter text in a title, the `/` and `:` prompt, describe keys, JSON keys, the `▸` of the setup form, `↓ more` |
 | `cursor` | reverse, bold | the cursor row of the focused pane, the focused button |
 
@@ -204,7 +204,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - The bottom line is the last screen row. It has no frame.
 - At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 1 space. Thus the freshness ends in the column of the right border.
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
-- Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
+- Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a failed refresh. If the flash does not fit, it is cut with `…`.
 - While the user types a filter: `/` in `accent` bold at column 1 (the border column), so the typed text starts in column 2, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
 - While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 2, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
@@ -231,7 +231,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 ```
 
 - A dialog is a pop-up: a frame in the centre of the body. Its width is half the screen width minus 2, but at least 64 cells, and never wider than the screen minus 2. Its height fits its content, but never more than the body height minus 2.
-- Pop-up fade: under each pop-up (dialog, help, setup form), all rows above the bottom line are drawn again in `dim`, with their colours removed. Text and pane borders keep their shape. The bottom line keeps its colours.
+- Pop-up fade: under each pop-up (dialog, error pop-up, help, setup form), all rows above the bottom line are drawn again in `dim`, with their colours removed. Text and pane borders keep their shape. The bottom line keeps its colours.
 - Pop-up margin: a blank margin of 1 cell goes around the frame on all 4 sides. Thus no faded character touches the border. The frame and its margin stay in the body. They never cover the header or the bottom line.
 - The title is bold, in the border colour. It names the action, the target, the Context and the cluster: ` Drain n02 on prod (lamp) `. When Slurm sends no cluster name, the title has only the Context: ` Drain n02 on prod `. The colour shows the type: Drain and Edit reason in `warn`, Resume in `focus`, Cancel in `bad`.
 - Body rows start 2 cells inside the border. A blank row is above the first body row.
@@ -247,6 +247,15 @@ The hints show the keys of the focused pane, in this order. They change with the
 - Buttons are on one row, in the centre, 4 spaces apart. A button is its label with 1 space on each side, and no brackets. The focused button is in `cursor`. Other buttons are in `dim` (k9s dialog).
 - An error from the dialog (for example `Reason is required`) is on a row under the buttons, in `bad`.
 - `esc` does the same as the `Keep` button (k9s).
+
+### Error pop-up
+
+- An error pop-up uses the dialog rules (width, fade, margin). Its border and title are in `bad`.
+- Refused action: title `Error`. The body is the action and target in bold (`Drain n05`, `Edit reason of n05`, `Resume n05`, `Cancel job 1234`), a blank row, then Slurm's full message. Long text wraps. It is never cut. Then one button, `OK`.
+- Failed refresh: title `Refresh failed`. The body is the Context URL in bold, then the error. It opens when a refresh fails with a new error. The next failures with the same error do not open it again. A different error opens it again.
+- `enter` or `esc` closes it. Other keys do nothing.
+- The bottom line keeps the flash and the freshness. It shows no hints.
+- Refresh continues under an error pop-up.
 
 ### Forms
 
@@ -293,7 +302,7 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 ## States
 
 - No complete Context (no config file, or flags and env that leave a value out): the setup form opens (see Setup form).
-- First load fails: empty panes with the error in the flash, retrying each tick.
+- First load fails: empty panes, the `Refresh failed` pop-up and the error in the flash, retrying each tick.
 - A config file that exists but is incorrect (bad YAML, unknown field, unsafe key file, `http` to a host that is not loopback) stops slurmtui before the UI opens, with a non-zero exit code and a message that names the field.
 - Empty pane: `Nodes 0` and the row `no nodes`. Filter with no match: `Nodes 0 · /x` and the row `no nodes match /x`.
 - Expired Provided token: refresh stops and the flash holds `SLURM_JWT expired at <time>; get a new token and restart`.
@@ -374,13 +383,13 @@ The Jobs pane of the Overview and the full-screen `:jobs` view use the same colu
 
 - Node keys follow sofka (`D`/`U`). k9s uses `r`/`u`. Cancel uses delete's key, since cancel is the job's delete.
 - Edit reason sends the same request as Drain. Slurm only updates the reason on a drained node (`slurm-domain.md` §2).
-- The dialog fixes its target when it opens. Refresh pauses while a dialog is open (k9s).
+- The dialog fixes its target when it opens. Refresh pauses while a dialog is open (k9s). It does not pause under an error pop-up.
 - In a dialog: `tab` / `shift-tab` move the focus, `left` / `right` move between buttons, `enter` pushes the focused button (`enter` in the Reason field pushes the action), `esc` is `Keep`. Edit reason opens with the focus in the Reason field, so an accidental `enter` there must cause no change (spec story 63): `enter` while the reason is unchanged sends nothing, closes the dialog and flashes `reason unchanged`.
 - An empty Reason is refused in the dialog with `Reason is required`. Slurm itself accepts DRAIN without a reason (`slurm-domain.md` §2), so this copies scontrol.
 - An accepted action flashes `drain of n02 accepted`, `reason of n05 updated`, `resume of n02 accepted` or `cancel of job 1234 accepted`, in `ok`. `Keep` flashes `kept n02 as it was`. Action flashes clear after 6 s of clock time. A refresh error stays until a refresh works.
 - Help (`?`) lists the action keys.
 - Cancel target: `A_T` when `array_task_id` is set; `job_id` with "all tasks of array 1234" in the dialog when `array_task_string` is set; `het_job_id` with "all components of het job 1234" for any het component; `job_id` otherwise. The dialog title names the target that slurmtui sends, for example `Cancel job 1300 on prod (lamp)` for the het component `1300+1`.
-- Slurm decides validity. slurmtui does not pre-check permissions or state. `U` on an idle node and `ctrl-d` on an ended job open the dialog, and Slurm's reply goes in the flash. A rejected action puts Slurm's error in the flash in `bad`. A cancel fails when `status[].error.code` is non-zero.
+- Slurm decides validity. slurmtui does not pre-check permissions or state. `U` on an idle node and `ctrl-d` on an ended job open the dialog, and a refusal opens the error pop-up with Slurm's reply. A rejected action (HTTP error, non-empty `errors[]`) opens the error pop-up. A cancel fails when `status[].error.code` is non-zero.
 - After an action, refresh at once.
 
 ## Refresh

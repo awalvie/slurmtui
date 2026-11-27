@@ -34,6 +34,7 @@ const (
 
 type Session struct {
 	Context  string
+	URL      string
 	User     string
 	Expires  time.Time
 	ReadOnly bool
@@ -66,6 +67,7 @@ type Model struct {
 	built        map[frame]table
 
 	dialog        *confirm
+	alert         *alert
 	flash         *flash
 	refreshQueued bool
 }
@@ -149,12 +151,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var expired auth.ExpiredError
 		if errors.As(msg.err, &expired) {
 			m.halted = true
-			m.err = expired
-			return m, nil
+			return m.refreshFailed(expired), nil
 		}
 		if msg.err != nil {
-			m.err = msg.err
-			return m, nil
+			return m.refreshFailed(msg.err), nil
 		}
 		m.err = nil
 		m.lastOK = m.clock.Now()
@@ -179,6 +179,9 @@ func (m Model) key(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
 	if key == "ctrl+c" {
 		return m, tea.Quit
+	}
+	if m.alert != nil {
+		return m.alertKey(key), nil
 	}
 	if m.dialog != nil {
 		return m.dialogKey(msg)
@@ -269,6 +272,8 @@ func (m Model) View() tea.View {
 	lines = append(lines[:height-bottomLineHeight], m.bottomLine(width, problem))
 	screen := strings.Join(lines, "\n")
 	switch {
+	case m.alert != nil:
+		screen = overlaid(lines, m.alert.view(width), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	case m.dialog != nil:
 		screen = overlaid(lines, m.dialog.view(width, m.bodyHeight()-2*popupMargin), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	case m.top().kind == helpView:

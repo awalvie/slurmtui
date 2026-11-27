@@ -287,9 +287,8 @@ func TestUOnAnIdleNodeOpensResumeAndSlurmRefuses(t *testing.T) {
 	r.waitFor("Resume ghost3 on")
 	r.send("\x1b[D\r")
 
-	r.waitFor("Invalid node state transition")
-	if !isANSI(r.flashStyle("Failure to update").Fg, ansiRed) {
-		t.Fatalf("refusal is not red: %q", r.bottomLine())
+	if _, text := r.errorPopup("Error"); !strings.Contains(text, "Invalid node state transition") {
+		t.Fatalf("pop-up text = %q, want Slurm's refusal", text)
 	}
 }
 

@@ -23,8 +23,9 @@ type flash struct {
 }
 
 type actionDoneMsg struct {
-	info string
-	err  error
+	subject string
+	info    string
+	err     error
 }
 
 func (m Model) target() string {
@@ -66,17 +67,17 @@ func (m Model) selectedJob() (slurm.Job, bool) {
 	return m.job(r.key)
 }
 
-func runAction(info string, act func(ctx context.Context) error) tea.Cmd {
+func runAction(subject, info string, act func(ctx context.Context) error) tea.Cmd {
 	return func() tea.Msg {
 		if err := act(context.Background()); err != nil {
-			return actionDoneMsg{err: err}
+			return actionDoneMsg{subject: subject, err: err}
 		}
 		return actionDoneMsg{info: info}
 	}
 }
 
-func updateNode(source Source, name string, update slurm.NodeUpdate, info string) tea.Cmd {
-	return runAction(info, func(ctx context.Context) error {
+func updateNode(source Source, subject, name string, update slurm.NodeUpdate, info string) tea.Cmd {
+	return runAction(subject, info, func(ctx context.Context) error {
 		return source.UpdateNode(ctx, name, update)
 	})
 }
@@ -97,7 +98,7 @@ func (m Model) openDrain() Model {
 		action: w.action,
 		kept:   keptFlash(name),
 		submit: func(reason string) tea.Cmd {
-			return updateNode(source, name, slurm.NodeUpdate{State: slurm.Drain, Reason: reason}, w.done)
+			return updateNode(source, w.title+" "+name, name, slurm.NodeUpdate{State: slurm.Drain, Reason: reason}, w.done)
 		},
 	})
 	return m
@@ -162,7 +163,7 @@ func (m Model) openResume() Model {
 		action: "Resume",
 		kept:   keptFlash(name),
 		submit: func(string) tea.Cmd {
-			return updateNode(source, name, slurm.NodeUpdate{State: slurm.Resume}, "resume of "+name+" accepted")
+			return updateNode(source, "Resume "+name, name, slurm.NodeUpdate{State: slurm.Resume}, "resume of "+name+" accepted")
 		},
 	})
 	return m
@@ -185,7 +186,7 @@ func (m Model) openCancel() Model {
 		action: "Cancel job",
 		kept:   keptFlash("job " + target.ID),
 		submit: func(string) tea.Cmd {
-			return runAction("cancel of job "+target.ID+" accepted", func(ctx context.Context) error {
+			return runAction("Cancel job "+target.ID, "cancel of job "+target.ID+" accepted", func(ctx context.Context) error {
 				return source.CancelJob(ctx, target.ID)
 			})
 		},
@@ -218,9 +219,11 @@ func (m Model) dialogKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) actionDone(msg actionDoneMsg) (Model, tea.Cmd) {
-	m = m.say(flashInfo, msg.info)
 	if msg.err != nil {
-		m = m.say(flashError, msg.err.Error())
+		m.flash = nil
+		m.alert = &alert{title: actionErrorTitle, subject: msg.subject, message: msg.err.Error()}
+	} else {
+		m = m.say(flashInfo, msg.info)
 	}
 	if m.fetching {
 		m.refreshQueued = true
