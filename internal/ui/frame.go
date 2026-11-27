@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	outlineEdge     = " "
+	outlineEdge     = "  "
+	frameMargin     = " "
 	factSeparator   = " · "
 	titleRightSpace = 3
 )

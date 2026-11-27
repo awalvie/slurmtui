@@ -87,7 +87,7 @@ func TestHeaderShowsRootInRedBold(t *testing.T) {
 	r := startSigned(t, cluster, "root")
 	r.waitFor("User     root")
 
-	style := r.cellAt(10, 2).Style
+	style := r.cellAt(11, 2).Style
 	if !isANSI(style.Fg, ansiRed) || style.Attrs&uv.AttrBold == 0 {
 		t.Fatalf("root = %v, want red bold", style)
 	}
@@ -98,7 +98,7 @@ func TestHeaderShowsOtherUsersInTheDefaultColor(t *testing.T) {
 	r := startSigned(t, cluster, "alice")
 	r.waitFor("User     alice")
 
-	if style := r.cellAt(10, 2).Style; style.Fg != nil {
+	if style := r.cellAt(11, 2).Style; style.Fg != nil {
 		t.Fatalf("alice = %v, want the default colour", style)
 	}
 }

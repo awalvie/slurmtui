@@ -261,7 +261,7 @@ func (m Model) View() tea.View {
 	}
 	body, problem := base.body(width-2, m.bodyHeight())
 	for _, l := range body {
-		lines = append(lines, outlineEdge+l)
+		lines = append(lines, frameMargin+l)
 	}
 	for len(lines) < height-bottomLineHeight {
 		lines = append(lines, "")

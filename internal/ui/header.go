@@ -9,7 +9,7 @@ const (
 	gridAfterInfo   = 6
 	gridColumnGap   = 4
 	logoAfterGrid   = 4
-	logoRightMargin = 1
+	logoRightMargin = 2
 	expiresLayout   = "15:04"
 )
 

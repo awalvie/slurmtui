@@ -100,7 +100,7 @@ A job is ended when its class is completed, failed or stopped.
 ### Grid
 
 - Frames start in screen column 1 (0-based) and end 1 column before the right edge of the screen. Thus each frame is the terminal width minus 2. This is the outline.
-- Text outside the frames aligns to the outline: the header, the bottom line and the size message start in column 1. Text at the right ends in the column of the right border.
+- Text outside the frames starts 1 column inside the outline: the header, the bottom line and the size message start in column 2. Text at the right ends 1 column left of the right border. A box line sits in the middle of its cell, so this keeps text visibly inside the frame.
 - Text in a frame starts in column 3: the column header row and the cells. This is the left edge of the grid.
 - In a table row, column 2 is the lead cell: `▌`, `▸` or a space. The first cell starts in column 3.
 
@@ -206,8 +206,8 @@ The hints show the keys of the focused pane, in this order. They change with the
 - At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 1 space. Thus the freshness ends in the column of the right border.
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
 - Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
-- While the user types a filter: `/` in `accent` bold at column 1, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
-- While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 1, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
+- While the user types a filter: `/` in `accent` bold at column 2, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
+- While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 2, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
 ### Dialogs
 
@@ -299,7 +299,7 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - Empty pane: `Nodes 0` and the row `no nodes`. Filter with no match: `Nodes 0 · /x` and the row `no nodes match /x`.
 - Expired Provided token: refresh stops and the flash holds `SLURM_JWT expired at <time>; get a new token and restart`.
 - Data from Slurm that slurmtui cannot parse (bad hostlist, bad GRES string, unknown shape) is an error in the flash naming the field and value, never a guess. A field of the wrong JSON type gives `node "n1": cpus: "sixty-four" is not int`.
-- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, on the top row from column 1 (Grid). No frame.
+- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, on the top row from column 2 (Grid). No frame.
 - Narrow terminals: first the logo goes, then the hint grid (Header). Then each pane removes columns in its order, until the budget of Column widths holds:
   - Nodes: BY, AGE, GRES. Then REASON is cut.
   - Jobs: TIME_LEFT, PARTITION, NODES, USER, TIME. Then NAME and NODELIST(REASON) are cut.

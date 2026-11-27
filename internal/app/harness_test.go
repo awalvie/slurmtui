@@ -225,7 +225,7 @@ const (
 	frameLeft   = 1
 	leadX       = 2
 	gridLeft    = 3
-	outlineLeft = frameLeft
+	outlineLeft = frameLeft + 1
 )
 
 type tableRow struct {
