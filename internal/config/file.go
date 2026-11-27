@@ -104,7 +104,7 @@ func parseContext(name string, n *yaml.Node, path string) (Context, error) {
 			if err := decodeText(value, path, &ctx.URL); err != nil {
 				return err
 			}
-			if err := CheckURL(ctx.URL); err != nil {
+			if _, err := CheckURL(ctx.URL); err != nil {
 				return fail(value, path, "%s: %s", ctx.URL, err)
 			}
 			return nil

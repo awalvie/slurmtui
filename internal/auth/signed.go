@@ -23,20 +23,15 @@ type Key struct {
 }
 
 func ReadKeyFile(path string) (Key, error) {
-	key, err := readKeyFile(path)
+	f, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return Key{}, fmt.Errorf("key file %s: %w", path, err)
 	}
-	return key, nil
-}
-
-func readKeyFile(path string) (Key, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NONBLOCK, 0)
-	if err != nil {
-		return Key{}, err
-	}
 	key, err := readOpenKeyFile(f)
-	return key, errors.Join(err, f.Close())
+	if err = errors.Join(err, f.Close()); err != nil {
+		return Key{}, fmt.Errorf("key file %s: %w", path, err)
+	}
+	return key, nil
 }
 
 func readOpenKeyFile(f *os.File) (Key, error) {

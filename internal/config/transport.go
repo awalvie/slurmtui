@@ -13,12 +13,7 @@ import (
 
 var loopbackHosts = []string{"127.0.0.1", "::1", "localhost"}
 
-func CheckURL(raw string) error {
-	_, err := checkURL(raw)
-	return err
-}
-
-func checkURL(raw string) (*url.URL, error) {
+func CheckURL(raw string) (*url.URL, error) {
 	u, err := url.Parse(raw)
 	if err != nil {
 		return nil, err
@@ -38,7 +33,7 @@ func checkURL(raw string) (*url.URL, error) {
 	return nil, fmt.Errorf("scheme must be https or http, got %q", u.Scheme)
 }
 
-func ResolvePath(dir, home, path string) (string, error) {
+func resolvePath(dir, home, path string) (string, error) {
 	if path == "~" || strings.HasPrefix(path, "~/") {
 		if home == "" {
 			return "", fmt.Errorf("%s: HOME is not set, so ~ cannot be expanded", path)

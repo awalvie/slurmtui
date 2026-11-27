@@ -101,7 +101,7 @@ func checkDraft(d ui.Draft, dir string, env map[string]string, clk clock.Clock) 
 	if d.URL == "" {
 		return checked{}, inField("URL", errEmpty)
 	}
-	if err := config.CheckURL(d.URL); err != nil {
+	if _, err := config.CheckURL(d.URL); err != nil {
 		return checked{}, inField("URL", fmt.Errorf("%s: %w", d.URL, err))
 	}
 	ctx, err := draftContext(d)

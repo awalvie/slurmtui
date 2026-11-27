@@ -112,7 +112,7 @@ func ResolvePaths(ctx Context, dir, home string) (Context, error) {
 		if *p.path == "" {
 			continue
 		}
-		resolved, err := ResolvePath(dir, home, *p.path)
+		resolved, err := resolvePath(dir, home, *p.path)
 		if err != nil {
 			return Context{}, fmt.Errorf("context %q: %s: %w", ctx.Name, p.field, err)
 		}
@@ -154,7 +154,7 @@ func selectContext(flags Flags, f file) (Context, error) {
 	var u *url.URL
 	if flags.URL != "" {
 		var err error
-		u, err = checkURL(flags.URL)
+		u, err = CheckURL(flags.URL)
 		if err != nil {
 			return Context{}, fmt.Errorf("--url %s: %w", flags.URL, err)
 		}
