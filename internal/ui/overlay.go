@@ -8,31 +8,31 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
+var helpHints = []hint{{"j/k", "scroll"}, {"esc", "back"}}
+
+func isBoxDrawing(r rune) bool {
+	return r >= '\u2500' && r <= '\u257f'
+}
+
 func fade(lines []string) []string {
 	out := make([]string, len(lines))
 	for i, l := range lines {
-		out[i] = dimStyle.Render(ansi.Strip(l))
+		plain := strings.Map(func(r rune) rune {
+			if isBoxDrawing(r) {
+				return ' '
+			}
+			return r
+		}, ansi.Strip(l))
+		out[i] = dimStyle.Render(plain)
 	}
 	return out
 }
 
-func withMargin(box []string) []string {
-	blank := strings.Repeat(" ", widest(box)+2)
-	out := []string{blank}
-	for _, l := range box {
-		out = append(out, " "+l+" ")
+func clamped(box []string, height int) []string {
+	if len(box) <= height {
+		return box
 	}
-	return append(out, blank)
-}
-
-func (m Model) overlayBox(width, height int) []string {
-	switch {
-	case m.dialog != nil:
-		return m.dialog.view(width)
-	case m.top().kind == helpView:
-		return m.renderHelp(width, height)
-	}
-	return nil
+	return append(slices.Clone(box[:height-1]), box[len(box)-1])
 }
 
 func (m Model) overlayHints() []hint {
@@ -40,26 +40,20 @@ func (m Model) overlayHints() []hint {
 	case m.dialog != nil:
 		return m.dialog.hints()
 	case m.top().kind == helpView:
-		return []hint{{"j/k", "scroll"}, {"esc", "close"}}
+		return helpHints
 	}
 	return nil
 }
 
-func (m Model) beneathOverlay() Model {
-	if m.top().kind == helpView {
-		return m.pop()
-	}
-	return m
-}
-
-func overlaid(lines []string, box []string, width, height int) string {
+func overlaid(lines []string, box []string, width, bodyTop, bodyHeight int) string {
+	height := len(lines)
 	screen := append(fade(lines[:height-bottomLineHeight]), lines[height-bottomLineHeight:]...)
-	boxed := withMargin(box)
-	x := max((width-widest(boxed))/2, 0)
-	y := max((height-bottomLineHeight-len(boxed))/2, 0)
+	box = clamped(box, bodyHeight)
+	x := max((width-widest(box))/2, 0)
+	y := bodyTop + max((bodyHeight-len(box))/2, 0)
 	return lipgloss.NewCompositor(
 		lipgloss.NewLayer(strings.Join(screen, "\n")),
-		lipgloss.NewLayer(strings.Join(boxed, "\n")).X(x).Y(y).Z(1),
+		lipgloss.NewLayer(strings.Join(box, "\n")).X(x).Y(y).Z(1),
 	).Render()
 }
 

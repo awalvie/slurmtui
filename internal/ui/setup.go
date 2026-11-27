@@ -274,5 +274,5 @@ func (m Setup) View() tea.View {
 	}.render()
 	screen := make([]string, height)
 	screen[height-bottomLineHeight] = hintLine(setupHints, width)
-	return altView(overlaid(screen, form, width, height))
+	return altView(overlaid(screen, form, width, 0, height-bottomLineHeight))
 }

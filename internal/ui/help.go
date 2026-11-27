@@ -39,15 +39,15 @@ var legend = []string{
 }
 
 const (
-	helpWidth       = 64
 	helpKeyWidth    = 9
 	helpGroupInset  = "  "
 	helpRowInset    = "    "
-	helpMarginRows  = 2
-	helpBorderRows  = 2
+	helpColumnGap   = 4
+	helpMaxColumns  = 3
 	helpMoreMarker  = "↓ more"
 	legendHeading   = "Legend"
-	helpBodyColumns = helpWidth - 2 - len(helpRowInset) - 1
+	helpPaneTitle   = "Help"
+	helpFrameInside = 2
 )
 
 func packed(items []string, width int) []string {
@@ -67,46 +67,97 @@ func packed(items []string, width int) []string {
 	return append(out, line)
 }
 
-func helpLines(readOnly bool) []string {
-	lines := []string{""}
+func groupBlocks(readOnly bool) [][]string {
+	var blocks [][]string
 	for _, g := range helpGroupsFromBindings() {
-		lines = append(lines, helpGroupInset+keyStyle.Render(g.name))
+		block := []string{helpGroupInset + keyStyle.Render(g.name)}
 		for _, k := range g.keys {
 			if k.writes && readOnly {
 				continue
 			}
-			lines = append(lines, helpRowInset+keyStyle.Render(fitLeft(k.key, helpKeyWidth))+textStyle.Render(k.action))
+			block = append(block, helpRowInset+keyStyle.Render(fitLeft(k.key, helpKeyWidth))+textStyle.Render(k.action))
 		}
-		lines = append(lines, "")
+		blocks = append(blocks, append(block, ""))
+	}
+	return blocks
+}
+
+func columnsOf(blocks [][]string, count int) [][]string {
+	total := 0
+	for _, b := range blocks {
+		total += len(b)
+	}
+	for limit := (total + count - 1) / count; ; limit++ {
+		columns := [][]string{nil}
+		for _, b := range blocks {
+			last := len(columns) - 1
+			if len(columns[last]) > 0 && len(columns[last])+len(b) > limit {
+				columns = append(columns, nil)
+				last++
+			}
+			columns[last] = append(columns[last], b...)
+		}
+		if len(columns) <= count {
+			return columns
+		}
+	}
+}
+
+func helpLines(readOnly bool, inner int) []string {
+	blocks := groupBlocks(readOnly)
+	columnWidth := 0
+	for _, b := range blocks {
+		columnWidth = max(columnWidth, widest(b)+helpColumnGap)
+	}
+	count := max(min((inner+helpColumnGap)/columnWidth, helpMaxColumns), 1)
+	columns := columnsOf(blocks, count)
+	rows := 0
+	for _, c := range columns {
+		rows = max(rows, len(c))
+	}
+	lines := []string{""}
+	for r := range rows {
+		line := ""
+		for i, c := range columns {
+			cell := ""
+			if r < len(c) {
+				cell = c[r]
+			}
+			if i < len(columns)-1 {
+				cell = fitLeft(cell, columnWidth)
+			}
+			line += cell
+		}
+		lines = append(lines, line)
 	}
 	lines = append(lines, helpGroupInset+keyStyle.Render(legendHeading))
-	for _, l := range packed(legend, helpBodyColumns) {
+	for _, l := range packed(legend, max(inner-len(helpRowInset)-1, 1)) {
 		lines = append(lines, helpRowInset+dimStyle.Render(l))
 	}
 	return lines
 }
 
-func helpRoom(height int) int {
-	return max(height-bottomLineHeight-helpMarginRows-helpBorderRows, 1)
+func (m Model) helpRoom() int {
+	return max(m.bodyHeight()-boxBorders, 1)
 }
 
 func (m Model) helpKey(key string) Model {
-	_, height := m.size()
-	return m.scrollKey(key, len(helpLines(m.session.ReadOnly)), helpRoom(height))
+	width, _ := m.size()
+	return m.scrollKey(key, len(helpLines(m.session.ReadOnly, width-2-helpFrameInside)), m.helpRoom())
 }
 
-func (m Model) renderHelp(width, height int) []string {
-	lines := helpLines(m.session.ReadOnly)
-	room := min(helpRoom(height), len(lines))
+func (m Model) helpPane(width, height int) []string {
+	lines := helpLines(m.session.ReadOnly, width-helpFrameInside)
+	room := min(m.helpRoom(), len(lines))
 	top := m.scrollTop(len(lines), room)
 	shown := append([]string{}, lines[top:top+room]...)
 	if top+room < len(lines) {
 		shown[room-1] = helpGroupInset + accentStyle.Render(helpMoreMarker)
 	}
 	return box{
-		title:   titleStyle.Render("Keys"),
-		width:   min(helpWidth, width-2),
-		height:  room + helpBorderRows,
+		title:   titleStyle.Render(helpPaneTitle),
+		width:   width,
+		height:  height,
 		focused: true,
 		lines:   shown,
 	}.render()

@@ -144,6 +144,9 @@ func (m Model) hints() []hint {
 	if isDetail(f.kind) {
 		return []hint{{"j/k", "scroll"}, {"esc", "back"}, {"?", "more"}}
 	}
+	if f.kind == helpView {
+		return helpHints
+	}
 	var out []hint
 	for _, b := range bindings {
 		if b.hint == nil || !b.in(f.kind) || b.writes && m.session.ReadOnly {

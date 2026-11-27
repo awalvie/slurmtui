@@ -1,9 +1,11 @@
 package app_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/awalvie/slurmtui/internal/fakeslurm"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
@@ -68,11 +70,7 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	if c := r.cellAt(b.x+2, b.y); !isANSI(c.Style.Fg, ansiYellow) || c.Style.Attrs&uv.AttrBold == 0 {
 		t.Fatalf("Drain title is not yellow bold: %+v", c.Style)
 	}
-	for _, at := range [][2]int{{b.x - 1, b.y}, {b.x + 5, b.y - 1}, {b.x + b.width, b.y + 2}, {b.x + 5, b.y + b.height}} {
-		if c := r.cellAt(at[0], at[1]); c.Content != " " && c.Content != "" {
-			t.Fatalf("cell %v next to the dialog = %q, want blank\n%s", at, c.Content, r.screen())
-		}
-	}
+	r.checkNoBorderNextTo(b)
 	if c := r.cellAt(gridLeft, 0); c.Content != "C" || !isFaintWithoutColour(c.Style) {
 		t.Fatalf("header cell = %q %+v, want a faint C without colour", c.Content, c.Style)
 	}
@@ -90,5 +88,64 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	}
 	if c := r.cellAt(r.width-6, r.height-1); !isANSI(c.Style.Fg, ansiGreen) {
 		t.Fatalf("freshness lost its colour under the dialog: %+v", c.Style)
+	}
+}
+
+func isBorder(content string) bool {
+	return content != "" && strings.ContainsAny(content, "┌┐└┘│─├┤┬┴┼")
+}
+
+func (r *run) firstMarkFrom(x, y, dx, dy int) (string, [2]int) {
+	for x >= 0 && y >= 0 && x < r.width && y < r.height {
+		if c := r.cellAt(x, y).Content; c != " " && c != "" {
+			return c, [2]int{x, y}
+		}
+		x, y = x+dx, y+dy
+	}
+	return "", [2]int{x, y}
+}
+
+func (r *run) checkNoBorderNextTo(b dialogBox) {
+	r.t.Helper()
+	type ray struct{ x, y, dx, dy int }
+	var rays []ray
+	for y := b.y; y < b.y+b.height; y++ {
+		rays = append(rays, ray{b.x - 1, y, -1, 0}, ray{b.x + b.width, y, 1, 0})
+	}
+	for x := b.x; x < b.x+b.width; x++ {
+		rays = append(rays, ray{x, b.y - 1, 0, -1}, ray{x, b.y + b.height, 0, 1})
+	}
+	for _, ry := range rays {
+		if c, at := r.firstMarkFrom(ry.x, ry.y, ry.dx, ry.dy); isBorder(c) && at[1] < r.height-1 {
+			r.t.Fatalf("border piece %q at %v next to the dialog\n%s", c, at, r.screen())
+		}
+	}
+}
+
+func TestDialogsStayInTheBodyWithNoBorderPiecesNextToThem(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
+		Name:  "lamp",
+		Nodes: []fakeslurm.Node{idle("n1"), nodeIn("n2", "IDLE", "DRAIN")},
+		Jobs:  []fakeslurm.Job{runningJob(1234)},
+	})
+	for _, size := range []struct{ width, height int }{{160, 50}, {120, 40}, {80, 24}} {
+		for _, d := range []struct{ node, keys, title string }{{"n1", "D", "Drain n1"}, {"n2", "U", "Resume n2"}, {"n1", "\t\x04", "Cancel job 1234"}} {
+			t.Run(fmt.Sprintf("%dx%d %s", size.width, size.height, d.title), func(t *testing.T) {
+				r := startSizedOn(t, cluster, size.width, size.height)
+				r.waitFor("┌ Nodes 2 ")
+				bodyTop := r.mustFrameTop("Nodes")
+				r.moveTo(d.node)
+				r.send(d.keys)
+
+				r.waitFor(d.title)
+				b := r.dialogBox(d.title)
+				if b.y < bodyTop || b.y+b.height > r.height-1 {
+					t.Fatalf("dialog rows %d to %d leave the body (rows %d to %d)\n%s", b.y, b.y+b.height-1, bodyTop, r.height-2, r.screen())
+				}
+				r.checkNoBorderNextTo(b)
+				r.send(escKey)
+				r.waitGone(d.title)
+			})
+		}
 	}
 }

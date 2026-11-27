@@ -36,6 +36,9 @@ func (m Model) body(width, height int) ([]string, error) {
 	if isDetail(f.kind) {
 		return m.detailPane(f, width, height), nil
 	}
+	if f.kind == helpView {
+		return m.helpPane(width, height), nil
+	}
 	if f.kind == overviewView {
 		return m.overview(width, height)
 	}

@@ -9,38 +9,75 @@ import (
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
-func TestHelpIsABlueFrameOverTheFadedScreenWithALegend(t *testing.T) {
-	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
+var helpGroups = []string{"Nodes pane", "Jobs pane", "Both panes", "Dialogs", "Describe, JSON", "Commands", "Legend"}
+
+var legendItems = []string{"✕ down or failed", "◆ drain", "◐ mixed", "● allocated", "○ idle", "◌ other",
+	"◷ pending", "▶ running", "◼ completing", "✓ completed",
+	"* not responding", "~ powered off", "# powering up", "! power down pending",
+	"% powering down", "$ maintenance", "@ reboot requested", "^ reboot issued"}
+
+func TestHelpIsAFullViewUnderTheHeader(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
 	r := startProvided(t, cluster)
-	r.waitFor("┌ Nodes 1 ")
+	r.waitFor("┌ Nodes 2 ")
+	r.moveTo("n2")
+	nodesTop := r.mustFrameTop("Nodes")
 
 	r.send("?")
 
-	r.waitFor("┌ Keys ")
-	b := r.dialogBox("Keys ")
-	if b.width != 64 {
-		t.Fatalf("help width = %d, want 64", b.width)
+	r.waitFor("┌ Help ")
+	r.waitGone("┌ Nodes")
+	top, bottom := r.frameRows("Help")
+	if top != nodesTop || bottom != r.height-2 {
+		t.Fatalf("help frame is rows %d to %d, want %d to %d\n%s", top, bottom, nodesTop, r.height-2, r.screen())
 	}
-	if s := r.cellAt(b.x, b.y).Style; !isANSI(s.Fg, ansiBlue) {
+	if s := r.cellAt(frameLeft, top).Style; !isANSI(s.Fg, ansiBlue) {
 		t.Fatalf("help border = %+v, want blue", s)
 	}
-	if c := r.cellAt(gridLeft, 0); !isFaintWithoutColour(c.Style) {
-		t.Fatalf("screen under help is not faded: %+v", c.Style)
+	if s := r.styleOf("Cluster"); s.Attrs&uv.AttrFaint == 0 {
+		t.Fatalf("header label = %+v, want it faint as without help", s)
 	}
-	rows := strings.Join(r.dialogRows(b), "\n")
-	for _, item := range []string{"✕ down or failed", "◆ drain", "◐ mixed", "● allocated", "○ idle", "◌ other",
-		"◷ pending", "▶ running", "◼ completing", "✓ completed",
-		"* not responding", "~ powered off", "# powering up", "! power down pending",
-		"% powering down", "$ maintenance", "@ reboot requested", "^ reboot issued"} {
-		if !strings.Contains(rows, item) {
-			t.Errorf("legend has no %q\n%s", item, rows)
+	if s := r.styleOf("lamp"); s.Attrs&uv.AttrFaint != 0 {
+		t.Fatalf("header value = %+v, want a header that is not faded", s)
+	}
+	screen := r.screen()
+	for _, text := range append(append([]string{}, helpGroups...), legendItems...) {
+		if !strings.Contains(screen, text) {
+			t.Errorf("help at 160x50 has no %q\n%s", text, screen)
 		}
+	}
+	if strings.Contains(screen, "↓ more") {
+		t.Fatalf("help at 160x50 does not fit\n%s", screen)
 	}
 	if s := r.styleOf("◐ mixed"); s.Attrs&uv.AttrFaint == 0 {
 		t.Fatalf("legend is not faint: %+v", s)
 	}
-	if !strings.HasPrefix(r.bottomLine(), "   j/k scroll · esc close") {
+	if !strings.HasPrefix(r.bottomLine(), "   j/k scroll · esc back") {
 		t.Fatalf("bottom line = %q, want the help hints", r.bottomLine())
+	}
+
+	r.send(escKey)
+
+	r.waitGone("┌ Help ")
+	r.waitSelected("n2")
+}
+
+func TestHelpNeverCoversTheHeader(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
+	for _, size := range []struct{ width, height int }{{160, 50}, {120, 40}, {80, 24}} {
+		r := startSizedOn(t, cluster, size.width, size.height)
+		r.waitFor("┌ Nodes 1 ")
+		r.send("?")
+		r.waitFor("┌ Help ")
+		lines := strings.Split(r.screen(), "\n")
+		for y := range 5 {
+			if strings.ContainsAny(lines[y], "┌┐└┘│─") {
+				t.Fatalf("at %dx%d help covers header row %d: %q\n%s", size.width, size.height, y, lines[y], r.screen())
+			}
+		}
+		if !strings.Contains(lines[0], "Context") {
+			t.Fatalf("at %dx%d the header is gone\n%s", size.width, size.height, r.screen())
+		}
 	}
 }
 
@@ -51,8 +88,8 @@ func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 
 	r.send("?")
 
-	r.waitFor("┌ Keys ")
-	b := r.dialogBox("Keys ")
+	r.waitFor("┌ Help ")
+	b := r.dialogBox("Help ")
 	rows := r.dialogRows(b)
 	if last := strings.TrimSpace(rows[len(rows)-1]); last != "↓ more" {
 		t.Fatalf("last help row = %q, want ↓ more\n%s", last, r.screen())
@@ -71,7 +108,7 @@ func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 	r.send("jj")
 	r.waitGone("Nodes pane")
 	r.send(escKey)
-	r.waitGone("┌ Keys ")
+	r.waitGone("┌ Help ")
 }
 
 func TestKeyThatDoesNothingSaysSo(t *testing.T) {

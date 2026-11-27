@@ -115,7 +115,7 @@ func TestReadOnlySetupFormPingsAndOpensNodesInReadOnlyMode(t *testing.T) {
 }
 
 func TestReadOnlyHelpHidesActionKeys(t *testing.T) {
-	for _, v := range []struct{ open, title string }{{"", "┌ Keys "}, {"\t", "┌ Keys "}} {
+	for _, v := range []struct{ open, title string }{{"", "┌ Help "}, {"\t", "┌ Help "}} {
 		cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{runningJob(1234)}})
 		r := startReadOnly(t, cluster)
 		r.send(v.open + "?")
@@ -153,8 +153,8 @@ func TestReadOnlyActionKeysOpenNoDialogAndSendNoWriteInAnyView(t *testing.T) {
 		{"node raw json", "y", "JSON · n1 ", nil},
 		{"job describe", "\td", "Describe · 1234 ", nil},
 		{"job raw json", "\ty", "JSON · 1234 ", nil},
-		{"nodes help", "?", "┌ Keys ", nil},
-		{"jobs help", "\t?", "┌ Keys ", nil},
+		{"nodes help", "?", "┌ Help ", nil},
+		{"jobs help", "\t?", "┌ Help ", nil},
 	}
 	for _, v := range views {
 		for _, key := range []string{"D", "U", ctrlD} {

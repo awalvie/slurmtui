@@ -246,13 +246,13 @@ func TestHelpListsTheKeysInGroups(t *testing.T) {
 
 	r.send("?")
 
-	r.waitFor("┌ Keys ")
+	r.waitFor("┌ Help ")
 	for _, group := range []string{"Nodes pane", "Jobs pane", "Both panes", "Dialogs", "Describe, JSON", "Commands"} {
-		r.waitFor("│  " + group)
+		r.waitFor(group)
 	}
 	r.waitMatch(`│    ctrl-d   Cancel the job`)
 	r.waitMatch(`│    shift-n  Sort by name`)
 
 	r.send(escKey)
-	r.waitGone("┌ Keys ")
+	r.waitGone("┌ Help ")
 }

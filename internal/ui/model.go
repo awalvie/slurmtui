@@ -261,7 +261,7 @@ func (m Model) View() tea.View {
 	if width < minWidth || height < minHeight {
 		return altView(badStyle.Render(tooSmallText))
 	}
-	base := m.beneathOverlay().withBuiltTables()
+	base := m.withBuiltTables()
 	lines := base.header(width)
 	for range m.blankUnderHeader() {
 		lines = append(lines, "")
@@ -275,8 +275,8 @@ func (m Model) View() tea.View {
 	}
 	lines = append(lines[:height-bottomLineHeight], m.bottomLine(width, problem))
 	screen := strings.Join(lines, "\n")
-	if box := m.overlayBox(width, height); box != nil {
-		screen = overlaid(lines, box, width, height)
+	if m.dialog != nil {
+		screen = overlaid(lines, m.dialog.view(width), width, headerRows+m.blankUnderHeader(), m.bodyHeight())
 	}
 	return altView(screen)
 }

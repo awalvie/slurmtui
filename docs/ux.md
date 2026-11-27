@@ -119,7 +119,7 @@ The title is the name, then facts separated by ` · ` in `dim` (k9s `[count]`, i
 - Nodes right text: `cpu 56% · mem 54%` in `dim`. This is allocation over usable nodes (`slurm-domain.md` §5).
 - Jobs: `Jobs 120 · on n02 · 69 running · 31 pending`. The number is the count of rows in the pane. `on n02` is in `text` and shows only when the pane has a node scope. `running` counts the running, suspended and completing rows of the pane: the group that sorts with the running jobs (Jobs view). `pending` counts the pending rows. A count of 0 is not shown.
 - A filter adds ` · /<text>` in `accent` at the end of the title.
-- Describe: `Describe · n02`, `JSON · 4851`. Help: `Keys`.
+- Describe: `Describe · n02`, `JSON · 4851`. Help: `Help`.
 
 ### Height
 
@@ -194,7 +194,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - Nodes pane: `j/k move`, `enter jobs`, `d describe`, then `D edit reason` and `U resume` when the node has the DRAIN flag, `D drain` and `U resume` when the node is down without DRAIN, or `D drain` for all other nodes. Then `/ filter`, or `esc clear filter` while the pane has a filter. Then `tab jobs pane`, `? more`.
 - Jobs pane: `j/k move`, `d describe`, `ctrl-d cancel`, then `esc clear filter` while the pane has a filter, `esc all jobs` while it has a node scope, or `/ filter`. Then `tab nodes pane`, `? more`.
 - Full-screen `:nodes` and `:jobs`: the same hints, without the `tab` hint.
-- Describe and raw JSON: `j/k scroll`, `esc back`, `? more`. Help: `j/k scroll`, `esc close`.
+- Describe and raw JSON: `j/k scroll`, `esc back`, `? more`. Help: `j/k scroll`, `esc back`.
 - Dialog: `tab next button`, `enter confirm`, `esc keep`. Drain dialog: `type reason` first.
 - Read-only: no `D`, `U` or `ctrl-d` hint.
 - `y`, `N`, `S`, `g/G`, `:` commands and `ctrl-r` are only in help.
@@ -206,7 +206,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
 - Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
 - While the user types a filter: `/` in `accent` bold at column 3, the text in `text`, a `█` cursor in `accent`, then `   enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form.
-- While a dialog or help is open, the header is faded (Dialogs). Thus the bottom line shows the dialog or help hints at column 3, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
+- While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 3, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
 ### Dialogs
 
@@ -230,8 +230,8 @@ The hints show the keys of the focused pane, in this order. They change with the
  └──────────────────────────────────────────────────────────────┘
 ```
 
-- A dialog is a frame in the centre of the screen. Its width is half the screen width minus 2, but at least 64 cells, and never wider than the screen minus 2. Its height fits its content.
-- Overlay fade: all rows above the bottom line are drawn again in `dim`, with their colours removed. Then the dialog goes on top, with 1 blank cell around it on each side. The bottom line keeps its colours.
+- A dialog is a frame in the centre of the body. Its width is half the screen width minus 2, but at least 64 cells, and never wider than the screen minus 2. Its height fits its content, but never more than the body height. It never covers the header or the bottom line.
+- Overlay fade: all rows above the bottom line are drawn again in `dim`, with their colours removed. Border characters (`┌ ─ │ └`) become blanks, so no piece of a pane frame shows next to the dialog. Then the dialog goes on top, with no blank margin. The bottom line keeps its colours.
 - The title is bold, in the border colour. It names the action, the target, the Context and the cluster: ` Drain n02 on prod (lamp) `. When Slurm sends no cluster name, the title has only the Context: ` Drain n02 on prod `. The colour shows the type: Drain and Edit reason in `warn`, Resume in `focus`, Cancel in `bad`.
 - Body rows start 2 cells inside the border. A blank row is above the first body row.
 - Drain body: `No new jobs start on n02. Running jobs finish.`, then the jobs on the node:
@@ -281,8 +281,8 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - Describe: one row for each field. The key is in `accent`, padded to 16 cells. The value is in `text`. An empty value is `—` in `dim`. The state value has its glyph and its class colour.
 - A group name (`CPU`, `Memory`, `Times`, `Files`) is in `key`, with a blank row above it.
 - Raw JSON: keys in `accent`, strings in `ok`, numbers, `true` and `false` in `warn`, `null`, brackets, colons and commas in `dim`. Indent is 2 spaces.
-- Help is a dialog frame in `focus`, 64 cells wide, with the title `Keys`. It uses the overlay fade. It has one group for each place: `Nodes pane`, `Jobs pane`, `Both panes`, `Dialogs`, `Describe, JSON`, `Commands`. The group name is in `key`. Each row is the key in `key`, padded to 9 cells, then the action in `text`.
-- After the key groups, help shows the group `Legend` in `dim`, with items separated by ` · ` and packed into the frame width:
+- Help is a full view, as in k9s. The header stays. The body is one frame in `focus` with the title `Help`. It has one group for each place: `Nodes pane`, `Jobs pane`, `Both panes`, `Dialogs`, `Describe, JSON`, `Commands`. The group name is in `key`. Each row is the key in `key`, padded to 9 cells, then the action in `text`. The groups go into 3 columns, 2 columns or 1 column: as many as the width holds. `esc` or `?` goes back to the same view and cursor. The bottom line shows `j/k scroll · esc back`.
+- After the key groups, help shows the group `Legend` in `dim`, with items separated by ` · ` and packed into the frame width, under the columns:
   - The glyphs: `✕ down or failed · ◆ drain · ◐ mixed · ● allocated · ○ idle · ◌ other`, and `◷ pending · ▶ running · ◼ completing · ✓ completed`.
   - The state suffixes: `* not responding · ~ powered off · # powering up · ! power down pending · % powering down · $ maintenance · @ reboot requested · ^ reboot issued`.
 - These views do not wrap. A line that is too long is cut with `…`. `j` and `k` scroll. When help has more rows below, its last visible row is `↓ more` in `accent`.

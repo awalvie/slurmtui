@@ -624,7 +624,7 @@ func TestOutputUsesOnlyANSIColours(t *testing.T) {
 	r := startProvided(t, cluster)
 	r.waitFor("┌ Nodes 7 ")
 	for _, step := range []struct{ keys, want string }{
-		{"j", "┌ Nodes 7 "}, {"d", "Describe"}, {escKey + "y", "JSON"}, {escKey + "?", "Keys"}, {escKey + "D", "Drain"},
+		{"j", "┌ Nodes 7 "}, {"d", "Describe"}, {escKey + "y", "JSON"}, {escKey + "?", "┌ Help"}, {escKey + "D", "Drain"},
 		{escKey + "\t", "nodes pane"}, {"/x", "esc undo"}, {escKey + "\x04", "Cancel"},
 	} {
 		r.send(step.keys)
