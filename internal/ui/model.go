@@ -259,7 +259,7 @@ const tooSmallText = "terminal too small (80x24 minimum)"
 func (m Model) View() tea.View {
 	width, height := m.size()
 	if width < minWidth || height < minHeight {
-		return altView(badStyle.Render(tooSmallText))
+		return altView(gridEdge + badStyle.Render(tooSmallText))
 	}
 	under := m
 	if m.top().kind == helpView {

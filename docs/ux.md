@@ -298,7 +298,7 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - Empty pane: `Nodes 0` and the row `no nodes`. Filter with no match: `Nodes 0 · /x` and the row `no nodes match /x`.
 - Expired Provided token: refresh stops and the flash holds `SLURM_JWT expired at <time>; get a new token and restart`.
 - Data from Slurm that slurmtui cannot parse (bad hostlist, bad GRES string, unknown shape) is an error in the flash naming the field and value, never a guess. A field of the wrong JSON type gives `node "n1": cpus: "sixty-four" is not int`.
-- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, at the top left. No frame.
+- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, on the top row from column 3 (Grid). No frame.
 - Narrow terminals: first the logo goes, then the hint grid (Header). Then each pane removes columns in its order, until the budget of Column widths holds:
   - Nodes: BY, AGE, GRES. Then REASON is cut.
   - Jobs: TIME_LEFT, PARTITION, NODES, USER, TIME. Then NAME and NODELIST(REASON) are cut.
