@@ -253,16 +253,16 @@ The hints show the keys of the focused pane, in this order. They change with the
 ```
  ┌ Connect to Slurm ────────────────────────────────────────────┐
  │                                                              │
- │ ▸ Context name  prod█                                        │
- │   URL           https://slurm.example:6820                   │
- │   CA file                                                    │
- │   User          alice                                        │
- │   Token source  ‹ Key file ›                                 │
- │   Key file      ~/.config/slurmtui/keys/prod.key             │
+ │  ▸ Context name  prod█                                       │
+ │    URL           https://slurm.example:6820                  │
+ │    CA file                                                   │
+ │    User          alice                                       │
+ │    Token source  ‹ Key file ›                                │
+ │    Key file      ~/.config/slurmtui/keys/prod.key            │
  │                                                              │
- │                   Test and save     Quit                     │
+ │                   Test and save      Quit                    │
  │                                                              │
- │ Key file: no such file                                       │
+ │  Key file: no such file                                      │
  │                                                              │
  └──────────────────────────────────────────────────────────────┘
 ```
@@ -270,6 +270,8 @@ The hints show the keys of the focused pane, in this order. They change with the
 The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`):
 
 - The frame is 64 cells wide and in `focus`, with the title in `focus` bold. Only the form and the bottom line show. There is no header and no pane.
+- Rows start 2 cells inside the border, as in a dialog.
+- The top row of the form does not move. It is where the form without a note or an error is in the centre. A note or an error makes the form grow down.
 - The focused field has `▸ ` in `accent`, the label in `text`, and the value with a `█` cursor in `accent`. Other fields have the label in `dim` and the value in `text`.
 - Labels are padded to the longest label plus 2 spaces, so all values start in one column.
 - A choice field shows `‹ value ›`, with `‹` and `›` in `dim`. `←` and `→` change the value.

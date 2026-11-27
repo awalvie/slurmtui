@@ -189,7 +189,7 @@ const (
 	setupLabelGap  = "  "
 	setupFocusMark = "▸ "
 	setupPlainMark = "  "
-	setupInset     = " "
+	setupInset     = dialogBodyInset
 )
 
 var setupHints = []hint{{"tab", "next"}, {"shift-tab", "previous"}, {"←/→", "change"}, {"enter", "select"}}
@@ -274,5 +274,9 @@ func (m Setup) View() tea.View {
 	}.render()
 	screen := make([]string, height)
 	screen[height-bottomLineHeight] = hintLine(setupHints, width)
-	return altView(overlaid(screen, form, width, 0, height-bottomLineHeight))
+	plain := m
+	plain.err, plain.testing, plain.draft.Kind = nil, false, KeyFileToken
+	body := height - bottomLineHeight
+	top := max((body-len(plain.formLines(formWidth))-boxBorders)/2, popupMargin)
+	return altView(overlaidAt(screen, form, width, 0, body, top))
 }

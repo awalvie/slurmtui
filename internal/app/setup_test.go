@@ -99,7 +99,7 @@ func TestSetupFormShowsAPingFailureAndStaysOpen(t *testing.T) {
 
 	r.send("lab" + tab + cluster.URL + shiftTab + shiftTab + shiftTab + enter)
 
-	r.waitFor("slurm: Unable")
+	r.waitFor("Unable to contact slurmctld")
 	r.waitFor("Connect to Slurm")
 	wantNoDir(t, dir)
 	paths := []string{}
@@ -275,6 +275,9 @@ func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
 	if s := r.cellAt(b.x, b.y).Style; !isANSI(s.Fg, ansiBlue) {
 		t.Fatalf("form border = %+v, want blue", s)
 	}
+	if x, _ := r.offsetOf("▸ Context name"); x != b.x+3 {
+		t.Fatalf("focused field at column %d, want %d (2 cells inside the border)\n%s", x, b.x+3, r.screen())
+	}
 	if s := r.styleOf("▸ Context name"); !isANSI(s.Fg, ansiCyan) {
 		t.Fatalf("▸ is not cyan: %+v", s)
 	}
@@ -291,7 +294,14 @@ func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
 	r.send("lab" + tab + "http://slurm.example:6820" + shiftTab + shiftTab + shiftTab + enter)
 
 	r.waitFor("URL: http://slurm.example:6820")
-	rows := r.dialogRows(r.dialogBox("Connect to Slurm"))
+	after := r.dialogBox("Connect to Slurm")
+	if after.y != b.y || after.height <= b.height {
+		t.Fatalf("form with an error is rows %d to %d, want top row %d and more rows than %d\n%s", after.y, after.y+after.height-1, b.y, b.height, r.screen())
+	}
+	if x, _ := r.offsetOf("URL: http"); x != b.x+3 {
+		t.Fatalf("error at column %d, want %d\n%s", x, b.x+3, r.screen())
+	}
+	rows := r.dialogRows(after)
 	buttons, problem := -1, -1
 	for i, l := range rows {
 		if strings.Contains(l, "Test and save") {
