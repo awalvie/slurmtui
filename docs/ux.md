@@ -354,7 +354,7 @@ The Jobs pane of the Overview and the full-screen `:jobs` view use the same colu
 - `/` filters the focused pane by regex. `! x` inverts (k9s). The regex matches the row's cells joined by spaces, without regard to case (k9s). The rows change as you type. `enter` keeps the filter. `esc` while typing puts back the filter from before. A bad regex shows no rows and the error in the flash.
 - A key that does nothing in the focused pane is a warning in the flash that names the right place, for example `ctrl-d cancels a job · press tab to focus Jobs`, or `x does nothing here · ? lists the keys`. An unknown command is a warning too: `:xyz is not a command · ? lists the commands`.
 - `ctrl-r` refreshes now (k9s, sofka).
-- `?` help. `esc`, `?` or `q` closes it. A ticket that adds a pane key adds one entry to `bindings` in `internal/ui/keymap.go`. The entry gives the key, its pane, its help row, its hint and its action, so the key, the hints and Help come from one table. Read-only mode hides the hints and help rows with `writes`.
+- `?` help. `esc`, `?` or `q` closes it. A ticket that adds a pane key adds one entry to `bindings` in `internal/ui/keymap.go`. The entry gives the key, its pane, its help row, its hint and its action, so the key, the hints and Help come from one table. The same table holds the `:` commands and the Help rows for dialogs and for describe and JSON. Read-only mode hides the hints and help rows with `writes`.
 - `j`/`k`, arrows, `g` (top), `G` (bottom).
 - The cursor stays on the same node name or job ID across refreshes. If that row is gone, the cursor keeps its index, clamped (sofka).
 
