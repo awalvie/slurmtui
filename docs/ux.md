@@ -285,10 +285,10 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - A group name (`CPU`, `Memory`, `Times`, `Files`) is in `key`, with a blank row above it.
 - Raw JSON: keys in `accent`, strings in `ok`, numbers, `true` and `false` in `warn`, `null`, brackets, colons and commas in `dim`. Indent is 2 spaces.
 - Help is a pop-up in the centre of the body, with the dialog fade and margin (Dialogs). Its frame is in `focus` with the title `Help`. It is as wide as its content plus 2 cells at the right, but never wider than the screen minus 2. It has one group for each place: `Nodes pane`, `Jobs pane`, `Both panes`, `Dialogs`, `Describe, JSON`, `Commands`. The group name is in `key`, 2 cells inside the border. Each key row is indented 2 more cells: the key in `key`, padded to the widest key of all groups plus 2, then the action in `text`. Thus all groups have the same key column. The groups go into 3 columns, 2 columns or 1 column: as many as the width holds. There is no blank row above the first group, and one blank row above the bottom border. `esc` or `?` goes back to the same view and cursor. The bottom line shows `j/k scroll · esc back`.
-- After the key groups, help shows the group `Legend` in `dim`, with items separated by ` · ` and packed into the width of the columns, under the columns:
-  - The glyphs: `✕ down or failed · ◆ drain · ◐ mixed · ● allocated · ○ idle · ◌ other`, and `◷ pending · ▶ running · ◼ completing · ✓ completed`.
-  - The state suffixes: `* not responding · ~ powered off · # powering up · ! power down pending · % powering down · $ maintenance · @ reboot requested · ^ reboot issued`.
-- These views do not wrap. A line that is too long is cut with `…`. `j` and `k` scroll. Help is never taller than the body minus 2. When help has more rows below, its last visible row above the blank row is `↓ more` in `accent`.
+- After the key groups, help shows two legend groups, with the same layout as the key groups. Each row has one entry: the glyph in the key column, in its state colour (suffixes in `key`), then the word in `text`:
+  - `States`: `✕` down or failed, `◆` drain, `◐` mixed, `●` allocated, `○` idle, `◌` other, `◷` pending, `▶` running, `◼` completing, `✓` completed.
+  - `Node suffixes`: `*` not responding, `~` powered off, `#` powering up, `!` power down pending, `%` powering down, `$` maintenance, `@` reboot requested, `^` reboot issued.
+- These views do not wrap. A line that is too long is cut with `…`. `j` and `k` scroll. Help is never taller than the body minus 2. When help does not fit, it scrolls with `j/k` and `g/G`. When help has more rows below, its last visible row above the blank row is `↓ more` in `accent`. When it has more rows above, its first row is `↑ more` in `accent`.
 
 ## States
 

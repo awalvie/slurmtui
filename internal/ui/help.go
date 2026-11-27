@@ -1,6 +1,11 @@
 package ui
 
-import "github.com/charmbracelet/x/ansi"
+import (
+	"strings"
+
+	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
+)
 
 type keyHelp struct {
 	key    string
@@ -31,11 +36,48 @@ var fixedHelpGroups = []helpGroup{
 	}},
 }
 
-var legend = []string{
-	"✕ down or failed", "◆ drain", "◐ mixed", "● allocated", "○ idle", "◌ other",
-	"◷ pending", "▶ running", "◼ completing", "✓ completed",
-	"* not responding", "~ powered off", "# powering up", "! power down pending",
-	"% powering down", "$ maintenance", "@ reboot requested", "^ reboot issued",
+type legendEntry struct {
+	glyph string
+	style lipgloss.Style
+	word  string
+}
+
+type legendGroup struct {
+	name    string
+	entries []legendEntry
+}
+
+func stateEntry(c stateClass, word string) legendEntry {
+	return legendEntry{glyph: c.glyph, style: c.style, word: word}
+}
+
+func suffixEntry(glyph, word string) legendEntry {
+	return legendEntry{glyph: glyph, style: keyStyle, word: word}
+}
+
+var legendGroups = []legendGroup{
+	{"States", []legendEntry{
+		stateEntry(nodeClasses[nodeDown], "down or failed"),
+		stateEntry(nodeClasses[nodeDrain], "drain"),
+		stateEntry(nodeClasses[nodeMixed], "mixed"),
+		stateEntry(nodeClasses[nodeAllocated], "allocated"),
+		stateEntry(nodeClasses[nodeIdle], "idle"),
+		stateEntry(nodeClasses[nodeOther], "other"),
+		stateEntry(jobClasses[jobPending], "pending"),
+		stateEntry(jobClasses[jobRunning], "running"),
+		stateEntry(jobClasses[jobCompleting], "completing"),
+		stateEntry(jobClasses[jobCompleted], "completed"),
+	}},
+	{"Node suffixes", []legendEntry{
+		suffixEntry("*", "not responding"),
+		suffixEntry("~", "powered off"),
+		suffixEntry("#", "powering up"),
+		suffixEntry("!", "power down pending"),
+		suffixEntry("%", "powering down"),
+		suffixEntry("$", "maintenance"),
+		suffixEntry("@", "reboot requested"),
+		suffixEntry("^", "reboot issued"),
+	}},
 }
 
 const (
@@ -46,26 +88,9 @@ const (
 	helpColumnGap  = 4
 	helpMaxColumns = 3
 	helpMoreMarker = "↓ more"
-	legendHeading  = "Legend"
+	helpLessMarker = "↑ more"
 	helpPaneTitle  = "Help"
 )
-
-func packed(items []string, width int) []string {
-	var out []string
-	line := ""
-	for _, item := range items {
-		next := item
-		if line != "" {
-			next = line + factSeparator + item
-		}
-		if line != "" && ansi.StringWidth(next) > width {
-			out = append(out, line)
-			next = item
-		}
-		line = next
-	}
-	return append(out, line)
-}
 
 func groupBlocks(readOnly bool) [][]string {
 	groups := helpGroupsFromBindings()
@@ -83,6 +108,13 @@ func groupBlocks(readOnly bool) [][]string {
 				continue
 			}
 			block = append(block, helpRowInset+keyStyle.Render(fitLeft(k.key, keyWidth))+textStyle.Render(k.action))
+		}
+		blocks = append(blocks, append(block, ""))
+	}
+	for _, g := range legendGroups {
+		block := []string{helpGroupInset + keyStyle.Render(g.name)}
+		for _, e := range g.entries {
+			block = append(block, helpRowInset+e.style.Render(e.glyph)+fitLeft("", keyWidth-ansi.StringWidth(e.glyph))+textStyle.Render(e.word))
 		}
 		blocks = append(blocks, append(block, ""))
 	}
@@ -137,10 +169,8 @@ func helpLines(readOnly bool, room int) []string {
 		}
 		lines = append(lines, line)
 	}
-	width := min(widest(lines), room)
-	lines = append(lines, helpGroupInset+keyStyle.Render(legendHeading))
-	for _, l := range packed(legend, max(width-len(helpRowInset), 1)) {
-		lines = append(lines, helpRowInset+dimStyle.Render(l))
+	for len(lines) > 1 && strings.TrimSpace(lines[len(lines)-1]) == "" {
+		lines = lines[:len(lines)-1]
 	}
 	return lines
 }
@@ -162,6 +192,9 @@ func (m Model) helpBox() []string {
 	lines, rows, width := m.helpLayout()
 	top := m.scrollTop(len(lines), rows)
 	shown := append([]string{}, lines[top:top+rows]...)
+	if top > 0 {
+		shown[0] = helpGroupInset + accentStyle.Render(helpLessMarker)
+	}
 	if top+rows < len(lines) {
 		shown[rows-1] = helpGroupInset + accentStyle.Render(helpMoreMarker)
 	}

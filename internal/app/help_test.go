@@ -6,15 +6,19 @@ import (
 
 	"github.com/awalvie/slurmtui/internal/clock"
 	"github.com/awalvie/slurmtui/internal/fakeslurm"
-	uv "github.com/charmbracelet/ultraviolet"
 )
 
-var helpGroups = []string{"Nodes pane", "Jobs pane", "Both panes", "Dialogs", "Describe, JSON", "Commands", "Legend"}
+var helpGroups = []string{"Nodes pane", "Jobs pane", "Both panes", "Dialogs", "Describe, JSON", "Commands", "States", "Node suffixes"}
 
-var legendItems = []string{"✕ down or failed", "◆ drain", "◐ mixed", "● allocated", "○ idle", "◌ other",
-	"◷ pending", "▶ running", "◼ completing", "✓ completed",
-	"* not responding", "~ powered off", "# powering up", "! power down pending",
-	"% powering down", "$ maintenance", "@ reboot requested", "^ reboot issued"}
+var legendGroups = []struct {
+	name    string
+	entries [][2]string
+}{
+	{"States", [][2]string{{"✕", "down or failed"}, {"◆", "drain"}, {"◐", "mixed"}, {"●", "allocated"}, {"○", "idle"}, {"◌", "other"},
+		{"◷", "pending"}, {"▶", "running"}, {"◼", "completing"}, {"✓", "completed"}}},
+	{"Node suffixes", [][2]string{{"*", "not responding"}, {"~", "powered off"}, {"#", "powering up"}, {"!", "power down pending"},
+		{"%", "powering down"}, {"$", "maintenance"}, {"@", "reboot requested"}, {"^", "reboot issued"}}},
+}
 
 func (r *run) offsetOf(text string) (int, int) {
 	r.t.Helper()
@@ -69,7 +73,7 @@ func TestHelpIsACentredPopUp(t *testing.T) {
 		gap = ax - kx
 	}
 	screen := r.screen()
-	for _, text := range append(append([]string{}, helpGroups...), legendItems...) {
+	for _, text := range helpGroups {
 		if !strings.Contains(screen, text) {
 			t.Errorf("help at 160x50 has no %q\n%s", text, screen)
 		}
@@ -77,8 +81,22 @@ func TestHelpIsACentredPopUp(t *testing.T) {
 	if strings.Contains(screen, "↓ more") {
 		t.Fatalf("help at 160x50 does not fit\n%s", screen)
 	}
-	if s := r.styleOf("◐ mixed"); s.Attrs&uv.AttrFaint == 0 {
-		t.Fatalf("legend is not faint: %+v", s)
+	for _, g := range legendGroups {
+		gx, gy := r.offsetOf(g.name)
+		for i, e := range g.entries {
+			x, y := r.offsetOf(e[0] + strings.Repeat(" ", gap-1) + e[1])
+			if x != gx+2 || y != gy+1+i {
+				t.Fatalf("%s %s at %d,%d, want %d,%d: one entry per row in the key column\n%s", e[0], e[1], x, y, gx+2, gy+1+i, r.screen())
+			}
+		}
+	}
+	for _, c := range []struct {
+		glyph  string
+		colour int
+	}{{"✕", ansiRed}, {"◆", ansiYellow}, {"▶", ansiGreen}, {"◼", ansiCyan}} {
+		if s := r.styleOf(c.glyph + " "); !isANSI(s.Fg, c.colour) {
+			t.Fatalf("legend %s = %+v, want ANSI %d", c.glyph, s, c.colour)
+		}
 	}
 	if !strings.HasPrefix(r.bottomLine(), "   j/k scroll · esc back") {
 		t.Fatalf("bottom line = %q, want the help hints", r.bottomLine())
@@ -126,14 +144,22 @@ func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 	if s := r.styleOf("↓ more"); !isANSI(s.Fg, ansiCyan) {
 		t.Fatalf("↓ more is not cyan: %+v", s)
 	}
-	if strings.Contains(r.screen(), "^ reboot issued") {
+	if strings.Contains(r.screen(), "reboot issued") {
 		t.Fatalf("help fits; the test needs a longer help")
 	}
+	if strings.Contains(r.screen(), "↑ more") {
+		t.Fatalf("help at the top shows ↑ more\n%s", r.screen())
+	}
 	r.send("G")
-	r.waitFor("^ reboot issued")
+	r.waitFor("reboot issued")
 	r.waitGone("↓ more")
+	r.waitFor("↑ more")
+	if first := strings.TrimSpace(r.dialogRows(r.dialogBox("Help "))[0]); first != "↑ more" {
+		t.Fatalf("first help row = %q, want ↑ more\n%s", first, r.screen())
+	}
 	r.send("g")
 	r.waitFor("↓ more")
+	r.waitGone("↑ more")
 	r.send("jj")
 	r.waitGone("Nodes pane")
 	r.send(escKey)
