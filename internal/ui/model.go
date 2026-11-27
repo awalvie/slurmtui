@@ -248,7 +248,7 @@ const tooSmallText = "terminal too small (80x24 minimum)"
 func (m Model) View() tea.View {
 	width, height := m.size()
 	if width < minWidth || height < minHeight {
-		return altView(gridEdge + badStyle.Render(tooSmallText))
+		return altView(outlineEdge + badStyle.Render(tooSmallText))
 	}
 	under := m
 	if m.top().kind == helpView {
@@ -261,7 +261,7 @@ func (m Model) View() tea.View {
 	}
 	body, problem := base.body(width-2, m.bodyHeight())
 	for _, l := range body {
-		lines = append(lines, frameIndent+l)
+		lines = append(lines, outlineEdge+l)
 	}
 	for len(lines) < height-bottomLineHeight {
 		lines = append(lines, "")

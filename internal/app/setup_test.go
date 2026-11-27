@@ -287,7 +287,7 @@ func TestSetupFormIsABlueFrameWithFormHints(t *testing.T) {
 	if s := r.styleOf("‹ Env var ›"); s.Attrs&uv.AttrFaint == 0 {
 		t.Fatalf("‹ is not faint: %+v", s)
 	}
-	if !strings.HasPrefix(r.bottomLine(), "   tab next · shift-tab previous · ←/→ change · enter select") {
+	if !strings.HasPrefix(r.bottomLine(), " tab next · shift-tab previous · ←/→ change · enter select") {
 		t.Fatalf("bottom line = %q, want the form hints", r.bottomLine())
 	}
 

@@ -190,8 +190,8 @@ func TestFramesAreSquareAndOnTheGrid(t *testing.T) {
 	if x := r.columnX(header, "NAME"); x != gridLeft {
 		t.Errorf("first cell starts in column %d, want 3", x)
 	}
-	if !strings.HasPrefix(lines[0], "   Context") {
-		t.Errorf("header does not start in column 3: %q", lines[0])
+	if !strings.HasPrefix(lines[0], " Context") {
+		t.Errorf("header does not start in column 1: %q", lines[0])
 	}
 	for x := gridLeft; x < gridLeft+4; x++ {
 		if r.cellAt(x, top+1).Style.Attrs&uv.AttrBold == 0 {
@@ -422,16 +422,16 @@ func TestHeaderInfoRows(t *testing.T) {
 
 	lines := r.lines()
 	expires := startTime.Add(time.Hour).Local().Format("15:04")
-	want := []string{"   Context  " + contextOf(cluster) + "  [read-only]", "   Cluster  lamp", "   User     root", "   Slurm    26.05.5", "   Expires  " + expires}
+	want := []string{" Context  " + contextOf(cluster) + "  [read-only]", " Cluster  lamp", " User     root", " Slurm    26.05.5", " Expires  " + expires}
 	for y, w := range want {
 		if !strings.HasPrefix(lines[y], w) {
 			t.Errorf("header row %d = %q, want it to start with %q", y, lines[y], w)
 		}
-		if r.cellAt(gridLeft, y).Style.Attrs&uv.AttrFaint == 0 {
+		if r.cellAt(outlineLeft, y).Style.Attrs&uv.AttrFaint == 0 {
 			t.Errorf("label on row %d is not faint", y)
 		}
 	}
-	root := r.cellAt(12, 2).Style
+	root := r.cellAt(10, 2).Style
 	if !isANSI(root.Fg, ansiRed) || root.Attrs&uv.AttrBold == 0 {
 		t.Errorf("User root = %v, want red bold", root)
 	}
@@ -514,7 +514,7 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 
 func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
-	want := len("   Context  "+contextOf(cluster)+"  [read-only]") + 6
+	want := len(" Context  "+contextOf(cluster)+"  [read-only]") + 6
 	for _, args := range [][]string{{"--url", cluster.URL}, {"--url", cluster.URL, "--readonly"}} {
 		r := start(t, args, map[string]string{"SLURM_JWT": aliceToken})
 		r.waitFor("┌ Nodes 2 ")
@@ -619,9 +619,12 @@ func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
 	r.waitFor("┌ Nodes 1 ")
 	r.advance(3 * time.Second)
 	r.waitUntil("● 3s on the bottom line", func() bool { return strings.HasSuffix(r.bottomLine(), "● 3s") })
-	dot := r.cellAt(r.width-6, r.height-1)
+	dot := r.cellAt(r.width-5, r.height-1)
 	if dot.Content != "●" || !isANSI(dot.Style.Fg, ansiGreen) {
 		t.Fatalf("freshness dot = %q %v, want a green ●", dot.Content, dot.Style)
+	}
+	if end := len([]rune(r.bottomLine())) - 1; end != r.width-2 {
+		t.Fatalf("freshness ends in column %d, want %d (the right border)", end, r.width-2)
 	}
 
 	r.send("D")
@@ -650,12 +653,12 @@ func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
 	r.send("/n")
-	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   /n█  enter keep · esc undo") })
-	if c := r.cellAt(5, r.height-1); c.Content != "█" || !isANSI(c.Style.Fg, ansiCyan) {
+	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), " /n█  enter keep · esc undo") })
+	if c := r.cellAt(3, r.height-1); c.Content != "█" || !isANSI(c.Style.Fg, ansiCyan) {
 		t.Fatalf("prompt cursor = %q %v, want a cyan █", c.Content, c.Style)
 	}
 	r.send(escKey + ":jo")
-	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "   :jo█  enter run · esc cancel") })
+	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), " :jo█  enter run · esc cancel") })
 	if strings.Contains(r.screen(), "<nodes>") {
 		t.Fatalf("screen still shows crumbs:\n%s", r.screen())
 	}

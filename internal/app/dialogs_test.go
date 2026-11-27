@@ -75,7 +75,7 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 	if c := r.cellAt(frameLeft, 6); c.Content != "┌" {
 		t.Fatalf("pane corner under the dialog = %q, want a faint ┌\n%s", c.Content, r.screen())
 	}
-	if c := r.cellAt(gridLeft, 0); c.Content != "C" || !isFaintWithoutColour(c.Style) {
+	if c := r.cellAt(outlineLeft, 0); c.Content != "C" || !isFaintWithoutColour(c.Style) {
 		t.Fatalf("header cell = %q %+v, want a faint C without colour", c.Content, c.Style)
 	}
 	logoLine := r.lines()[1]
@@ -84,13 +84,13 @@ func TestDialogIsCentredOverAFadedScreen(t *testing.T) {
 		t.Fatalf("logo cell %+v is not faded", c.Style)
 	}
 	bottom := r.bottomLine()
-	if !strings.HasPrefix(bottom, "   type reason · tab next button · enter confirm · esc keep") {
-		t.Fatalf("bottom line = %q, want the dialog hints at column 3", bottom)
+	if !strings.HasPrefix(bottom, " type reason · tab next button · enter confirm · esc keep") {
+		t.Fatalf("bottom line = %q, want the dialog hints at column 1", bottom)
 	}
-	if c := r.cellAt(gridLeft, r.height-1); c.Content != "t" || c.Style.Attrs&uv.AttrBold == 0 {
+	if c := r.cellAt(outlineLeft, r.height-1); c.Content != "t" || c.Style.Attrs&uv.AttrBold == 0 {
 		t.Fatalf("hint key = %q %+v, want bold", c.Content, c.Style)
 	}
-	if c := r.cellAt(r.width-6, r.height-1); !isANSI(c.Style.Fg, ansiGreen) {
+	if c := r.cellAt(r.width-5, r.height-1); !isANSI(c.Style.Fg, ansiGreen) {
 		t.Fatalf("freshness lost its colour under the dialog: %+v", c.Style)
 	}
 }

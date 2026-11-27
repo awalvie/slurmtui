@@ -69,7 +69,7 @@ func hintLine(hints []hint, width int) string {
 		for i, h := range hints {
 			parts[i] = keyStyle.Render(h.key) + " " + dimStyle.Render(h.label)
 		}
-		line := gridEdge + strings.Join(parts, dimStyle.Render(factSeparator))
+		line := outlineEdge + strings.Join(parts, dimStyle.Render(factSeparator))
 		drop := -1
 		for i, h := range hints {
 			if !keep(h) {

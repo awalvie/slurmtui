@@ -17,7 +17,7 @@ const readOnlyMark = "[read-only]"
 
 func (m Model) infoRows() []string {
 	row := func(label, value string) string {
-		return gridEdge + dimStyle.Render(fitLeft(label, infoLabelWidth)) + value
+		return outlineEdge + dimStyle.Render(fitLeft(label, infoLabelWidth)) + value
 	}
 	context := row("Context", keyStyle.Render(m.session.Context))
 	if m.session.ReadOnly {

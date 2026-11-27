@@ -65,11 +65,11 @@ func (m Model) prompt() (string, bool) {
 }
 
 func (m Model) promptLine(mark, text, help string) string {
-	return gridEdge + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + bottomGap + dimStyle.Render(help)
+	return outlineEdge + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + bottomGap + dimStyle.Render(help)
 }
 
 func (m Model) bottomLine(width int, problem error) string {
-	right := m.freshness() + bottomGap
+	right := m.freshness() + outlineEdge
 	left, typing := m.prompt()
 	if hints := m.overlayHints(); hints != nil {
 		left, typing = hintLine(hints, max(width-ansi.StringWidth(right), 0)), true
@@ -80,7 +80,7 @@ func (m Model) bottomLine(width int, problem error) string {
 	text, level := m.flashLine(problem)
 	text = singleLine(text)
 	if text != "" {
-		room := max(width-ansi.StringWidth(right)-len(bottomGap)-len(gridEdge), 0)
+		room := max(width-ansi.StringWidth(right)-len(bottomGap)-len(outlineEdge), 0)
 		right = level.style().Render(ansi.Truncate(text, room, "…")) + bottomGap + right
 	}
 	return fitRight(right, width)

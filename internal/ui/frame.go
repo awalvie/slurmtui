@@ -9,8 +9,7 @@ import (
 )
 
 const (
-	gridEdge        = "   "
-	frameIndent     = " "
+	outlineEdge     = " "
 	factSeparator   = " · "
 	titleRightSpace = 3
 )

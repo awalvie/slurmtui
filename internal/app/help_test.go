@@ -86,7 +86,7 @@ func TestHelpIsACentredPopUp(t *testing.T) {
 			t.Fatalf("legend %s = %+v, want ANSI %d", c.glyph, s, c.colour)
 		}
 	}
-	if !strings.HasPrefix(r.bottomLine(), "   j/k scroll · esc back") {
+	if !strings.HasPrefix(r.bottomLine(), " j/k scroll · esc back") {
 		t.Fatalf("bottom line = %q, want the help hints", r.bottomLine())
 	}
 

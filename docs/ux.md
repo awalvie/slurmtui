@@ -9,11 +9,11 @@ The prototype on branch `prototype/visual-system`, commit `1944627` (`cmd/proto-
 The start screen is the Overview. It has four bands, from top to bottom: the header (5 rows), the Nodes pane, the Jobs pane and the bottom line (1 row). Example at 100x32:
 
 ```
-   Context  prod                        j/k   move         /     filter
-   Cluster  lamp                        enter jobs         tab   jobs pane
-   User     alice                       d     describe     q     quit
-   Slurm    26.05.5                     D     drain        ?     more
-   Expires  18:00                       U     resume
+ Context  prod                          j/k   move         /     filter
+ Cluster  lamp                          enter jobs         tab   jobs pane
+ User     alice                         d     describe     q     quit
+ Slurm    26.05.5                       D     drain        ?     more
+ Expires  18:00                         U     resume
 
  ┌ Nodes 40 · ◆ 2 draining · ◆ 2 drained · ✕ 2 down ─────────────────────────── cpu 56% · mem 54% ┐
  │ NAME  STATE ↑          CPU  MEM(GiB)  GRES  BY     AGE   REASON                                │
@@ -39,7 +39,7 @@ The start screen is the Overview. It has four bands, from top to bottom: the hea
  │ 4732  gpu        gromac…  erin   ◷ PENDING      3h52m                 2  (Dependency)          │
  │ 4857  cpu        backup…  root   ◷ PENDING      3h57m                 1  (BeginTime)           │
  └────────────────────────────────────────────────────────────────────────────────────────────────┘
-                                                                                              ● 3s
+                                                                                               ● 3s
 ```
 
 - Header: the Context information at the left, the key hints of the focused pane in the middle, and the logo at the right (k9s). Header gives the rules.
@@ -99,8 +99,9 @@ A job is ended when its class is completed, failed or stopped.
 
 ### Grid
 
-- All text starts in screen column 3 (0-based): the header, the column header row, the cells, the dialog hints and the prompt. This is the left edge of the grid.
-- Frames start in column 1 and end 1 column before the right edge of the screen. Thus each frame is the terminal width minus 2.
+- Frames start in screen column 1 (0-based) and end 1 column before the right edge of the screen. Thus each frame is the terminal width minus 2. This is the outline.
+- Text outside the frames aligns to the outline: the header, the bottom line and the size message start in column 1. Text at the right ends in the column of the right border.
+- Text in a frame starts in column 3: the column header row and the cells. This is the left edge of the grid.
 - In a table row, column 2 is the lead cell: `▌`, `▸` or a space. The first cell starts in column 3.
 
 ### Frames
@@ -171,11 +172,11 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 ### Header
 
 ```
-   Context  prod  [read-only]           j/k   move           /     filter       <logo>
-   Cluster  lamp                        enter jobs           tab   jobs pane
-   User     alice                       d     describe       q     quit
-   Slurm    26.05.5                     D     edit reason    ?     more
-   Expires  18:00                       U     resume
+ Context  prod  [read-only]             j/k   move           /     filter       <logo>
+ Cluster  lamp                          enter jobs           tab   jobs pane
+ User     alice                         d     describe       q     quit
+ Slurm    26.05.5                       D     edit reason    ?     more
+ Expires  18:00                         U     resume
 ```
 
 - The header has no frame. It is 5 rows high.
@@ -202,11 +203,11 @@ The hints show the keys of the focused pane, in this order. They change with the
 ### Bottom line
 
 - The bottom line is the last screen row. It has no frame.
-- At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 2 spaces.
+- At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 1 space. Thus the freshness ends in the column of the right border.
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
 - Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
-- While the user types a filter: `/` in `accent` bold at column 3, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
-- While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 3, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
+- While the user types a filter: `/` in `accent` bold at column 1, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
+- While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 1, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
 ### Dialogs
 
@@ -298,7 +299,7 @@ The setup form uses the dialog rules, plus these rules (sofka `draw_plugin_form`
 - Empty pane: `Nodes 0` and the row `no nodes`. Filter with no match: `Nodes 0 · /x` and the row `no nodes match /x`.
 - Expired Provided token: refresh stops and the flash holds `SLURM_JWT expired at <time>; get a new token and restart`.
 - Data from Slurm that slurmtui cannot parse (bad hostlist, bad GRES string, unknown shape) is an error in the flash naming the field and value, never a guess. A field of the wrong JSON type gives `node "n1": cpus: "sixty-four" is not int`.
-- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, on the top row from column 3 (Grid). No frame.
+- Terminal smaller than 80x24: the screen shows only `terminal too small (80x24 minimum)` in `bad`, on the top row from column 1 (Grid). No frame.
 - Narrow terminals: first the logo goes, then the hint grid (Header). Then each pane removes columns in its order, until the budget of Column widths holds:
   - Nodes: BY, AGE, GRES. Then REASON is cut.
   - Jobs: TIME_LEFT, PARTITION, NODES, USER, TIME. Then NAME and NODELIST(REASON) are cut.

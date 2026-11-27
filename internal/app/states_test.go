@@ -15,11 +15,11 @@ func TestSmallTerminalShowsOnlyTheMinimumSize(t *testing.T) {
 	const message = "terminal too small (80x24 minimum)"
 	for _, size := range []struct{ width, height int }{{79, 24}, {80, 23}} {
 		r := startSizedOn(t, cluster, size.width, size.height)
-		r.waitUntil("the size message", func() bool { return strings.HasPrefix(r.screen(), "   "+message) })
+		r.waitUntil("the size message", func() bool { return strings.HasPrefix(r.screen(), " "+message) })
 		if s := strings.TrimSpace(r.screen()); s != message {
 			t.Fatalf("at %dx%d the screen shows more than the message:\n%s", size.width, size.height, s)
 		}
-		if !isANSI(r.cellAt(gridLeft, 0).Style.Fg, ansiRed) {
+		if !isANSI(r.cellAt(outlineLeft, 0).Style.Fg, ansiRed) {
 			t.Fatalf("at %dx%d the message is not red", size.width, size.height)
 		}
 	}

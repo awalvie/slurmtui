@@ -222,9 +222,10 @@ func (r *run) waitExit() int {
 }
 
 const (
-	frameLeft = 1
-	leadX     = 2
-	gridLeft  = 3
+	frameLeft   = 1
+	leadX       = 2
+	gridLeft    = 3
+	outlineLeft = frameLeft
 )
 
 type tableRow struct {
