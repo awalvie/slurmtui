@@ -38,7 +38,7 @@ func margined(box []string) []string {
 func (m Model) overlayHints() []hint {
 	switch {
 	case m.alert != nil:
-		return nil
+		return []hint{{"enter", "ok"}, {"esc", "close"}}
 	case m.dialog != nil:
 		return m.dialog.hints()
 	case m.top().kind == helpView:

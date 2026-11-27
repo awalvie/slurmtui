@@ -182,12 +182,12 @@ func TestExpiredProvidedTokenStopsRefresh(t *testing.T) {
 	r.advance(5 * time.Second)
 
 	want := "SLURM_JWT expired at " + expiry.Local().Format(expiryLayout) + "; get a new token and restart"
-	r.waitFor(want)
+	r.waitPopupText("Refresh failed", want)
 	r.rowByName("n1")
 	r.advance(5 * time.Second)
 	r.advance(5 * time.Second)
 	r.send("\x12")
-	r.waitFor(want)
+	r.waitPopupText("Refresh failed", want)
 	if got := nodeRequests(cluster); got != 2 {
 		t.Fatalf("nodes requests = %d, want 2", got)
 	}
@@ -203,7 +203,7 @@ func TestExpiredMessageUsesTheContextTokenEnv(t *testing.T) {
 
 	r := start(t, []string{"--context", "lab"}, map[string]string{"SLURMTUI_CONFIG_DIR": dir, "SLURM_JWT_LAB": providedToken("alice", expiry)})
 
-	r.waitFor("SLURM_JWT_LAB expired at " + expiry.Local().Format(expiryLayout) + "; get a new token and restart")
+	r.waitPopupText("Refresh failed", "SLURM_JWT_LAB expired at "+expiry.Local().Format(expiryLayout)+"; get a new token and restart")
 	if got := nodeRequests(cluster); got != 0 {
 		t.Fatalf("nodes requests = %d, want 0", got)
 	}

@@ -306,7 +306,7 @@ func TestUnknownJobStateIsAnError(t *testing.T) {
 
 	r := startProvided(t, cluster)
 
-	r.waitFor(`/slurm/v0.0.45/jobs: job 42: job_state: unknown value "SPARKLING"`)
+	r.waitPopupText("Refresh failed", `/slurm/v0.0.45/jobs: job 42: job_state: unknown value "SPARKLING"`)
 }
 
 func TestJobsAreFetchedWithNodesEachRefresh(t *testing.T) {

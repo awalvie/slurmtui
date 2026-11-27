@@ -18,6 +18,15 @@ func (r *run) errorPopup(title string) (dialogBox, string) {
 	return b, text
 }
 
+func (r *run) waitPopupText(title, want string) {
+	r.t.Helper()
+	r.waitFor("┌ " + title + " ")
+	r.waitUntil(title+" pop-up with "+want, func() bool {
+		b := r.dialogBox(title + " ")
+		return strings.Contains(strings.Join(strings.Fields(strings.Join(r.dialogRows(b), " ")), " "), want)
+	})
+}
+
 func (r *run) checkErrorPopup(b dialogBox) {
 	r.t.Helper()
 	if c := r.cellAt(b.x, b.y); !isANSI(c.Style.Fg, ansiRed) {
