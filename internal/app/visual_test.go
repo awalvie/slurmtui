@@ -523,7 +523,7 @@ func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
 		}
 	}
 
-	r := startSized(t, clock.NewFake(startTime), 80, 24, []string{"--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
+	r := startSizedOn(t, cluster, 80, 24)
 	r.waitFor("┌ Nodes 2 ")
 	for _, keys := range []string{"", "/n\r"} {
 		r.send(keys)
@@ -542,8 +542,7 @@ func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
 
 func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
-	r := start(t, []string{"--url", cluster.URL, "--user", "alice", "--readonly"}, map[string]string{"SLURM_JWT": aliceToken})
-	r.waitFor("┌ Nodes 1 ")
+	r := startReadOnly(t, cluster)
 	header := strings.Join(strings.Split(r.screen(), "\n")[:5], "\n")
 	for _, h := range []string{"D ", "U ", "edit reason", "resume"} {
 		if strings.Contains(header, h) {
@@ -647,17 +646,6 @@ func TestBottomLineShowsFreshnessAndFlash(t *testing.T) {
 	}
 }
 
-func TestReadOnlyKeyFlashesAWarning(t *testing.T) {
-	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
-	r := start(t, []string{"--url", cluster.URL, "--user", "alice", "--readonly"}, map[string]string{"SLURM_JWT": aliceToken})
-	r.waitFor("┌ Nodes 1 ")
-	r.send("D")
-	r.waitFor("action disabled")
-	if !isANSI(r.flashStyle("read-only mode").Fg, ansiYellow) {
-		t.Fatalf("warning flash is not yellow: %q", r.bottomLine())
-	}
-}
-
 func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
@@ -681,7 +669,7 @@ func TestBodyHeightFollowsTheTerminal(t *testing.T) {
 		t.Fatalf("at 50 rows the frame starts on row %d, want 6 (one blank row under the header)", top)
 	}
 
-	small := startSized(t, clock.NewFake(startTime), 80, 24, []string{"--url", cluster.URL, "--user", "alice"}, map[string]string{"SLURM_JWT": aliceToken})
+	small := startSizedOn(t, cluster, 80, 24)
 	small.waitFor("┌ Nodes 1 ")
 	small.fullScreen("nodes", "Nodes")
 	lines := strings.Split(small.screen(), "\n")

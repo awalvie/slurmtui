@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/awalvie/slurmtui/internal/app"
 	"github.com/awalvie/slurmtui/internal/clock"
+	"github.com/awalvie/slurmtui/internal/fakeslurm"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/vt"
@@ -578,4 +580,74 @@ func (r *run) fullScreen(command, title string) {
 	other := map[string]string{"Nodes": "Jobs", "Jobs": "Nodes"}[title]
 	r.send(":" + command + "\r")
 	r.waitUntil(title+" at full screen", func() bool { return r.frameTop(title) >= 0 && r.frameTop(other) < 0 })
+}
+
+func (r *run) offsetOf(text string) (int, int) {
+	r.t.Helper()
+	for y, line := range strings.Split(r.screen(), "\n") {
+		if at := strings.Index(line, text); at >= 0 {
+			return len([]rune(line[:at])), y
+		}
+	}
+	r.t.Fatalf("screen has no %q\n%s", text, r.screen())
+	return 0, 0
+}
+
+func (r *run) styleOf(text string) uv.Style {
+	r.t.Helper()
+	return r.cellAt(r.offsetOf(text)).Style
+}
+
+func requestsWhere(cluster *fakeslurm.Server, keep func(fakeslurm.Request) bool) []fakeslurm.Request {
+	var out []fakeslurm.Request
+	for _, req := range cluster.Requests() {
+		if keep(req) {
+			out = append(out, req)
+		}
+	}
+	return out
+}
+
+func (r *run) waitOneRequest(cluster *fakeslurm.Server, what string, keep func(fakeslurm.Request) bool) fakeslurm.Request {
+	r.t.Helper()
+	r.waitUntil("a "+what+" request", func() bool { return len(requestsWhere(cluster, keep)) > 0 })
+	got := requestsWhere(cluster, keep)
+	if len(got) != 1 {
+		r.t.Fatalf("got %d %s requests, want 1: %+v", len(got), what, got)
+	}
+	return got[0]
+}
+
+func checkBody(t *testing.T, req fakeslurm.Request, wantPath, wantBody string) {
+	t.Helper()
+	if req.Path != wantPath {
+		t.Errorf("path = %s, want %s", req.Path, wantPath)
+	}
+	var got, want any
+	if err := json.Unmarshal(req.Body, &got); err != nil {
+		t.Fatalf("body %q is not JSON: %s", req.Body, err)
+	}
+	if err := json.Unmarshal([]byte(wantBody), &want); err != nil {
+		t.Fatalf("want body %q is not JSON: %s", wantBody, err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("body = %s, want %s", req.Body, wantBody)
+	}
+}
+
+func startSizedOn(t *testing.T, cluster *fakeslurm.Server, width, height int) *run {
+	t.Helper()
+	return startSized(t, clock.NewFake(startTime), width, height, []string{"--url", cluster.URL, "--user", "alice"}, map[string]string{"SLURM_JWT": aliceToken})
+}
+
+func startProvided(t *testing.T, cluster *fakeslurm.Server) *run {
+	t.Helper()
+	return startSizedOn(t, cluster, screenWidth, screenHeight)
+}
+
+func startReadOnly(t *testing.T, cluster *fakeslurm.Server) *run {
+	t.Helper()
+	r := start(t, []string{"--readonly", "--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
+	r.waitFor("┌ Nodes 1 ")
+	return r
 }

@@ -135,20 +135,6 @@ func TestYShowsRawJobJSON(t *testing.T) {
 	r.waitFor(`│   "standard_output": "/home/bob/run/slurm-%j.out",`)
 }
 
-func TestEscReturnsToTableOnSameRow(t *testing.T) {
-	r, _ := startOnJobs(t, []fakeslurm.Job{runningJob(1), runningJob(2), runningJob(3)})
-	r.send("j")
-	r.waitSelected("2")
-
-	for _, key := range []string{"d", "y", "\r"} {
-		r.send(key)
-		r.waitFor(" · 2 ──")
-		r.send(escKey)
-		r.waitFor("┌ Jobs 3 ")
-		r.waitSelected("2")
-	}
-}
-
 func TestDescribeUpdatesAtEachRefresh(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{describedNode()}})
 	r := startProvided(t, cluster)

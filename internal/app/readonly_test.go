@@ -17,9 +17,7 @@ const (
 func TestReadOnlyFlagShowsBadgeAfterContextName(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
 
-	r := start(t, []string{"--readonly", "--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
-
-	r.waitFor("┌ Nodes 1 ")
+	r := startReadOnly(t, cluster)
 	r.waitFor("Context  " + contextOf(cluster) + "  [read-only]")
 }
 
@@ -129,13 +127,6 @@ func TestReadOnlyHelpHidesActionKeys(t *testing.T) {
 	}
 }
 
-func startReadOnly(t *testing.T, cluster *fakeslurm.Server) *run {
-	t.Helper()
-	r := start(t, []string{"--readonly", "--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
-	r.waitFor("┌ Nodes 1 ")
-	return r
-}
-
 func writeRequests(cluster *fakeslurm.Server) []fakeslurm.Request {
 	return requestsWhere(cluster, func(req fakeslurm.Request) bool { return req.Method != http.MethodGet })
 }
@@ -198,6 +189,9 @@ func TestReadOnlyActionKeyInTheOtherPaneSaysReadOnly(t *testing.T) {
 	r.waitFor(readOnlyFlash)
 	r.send("\tD")
 	r.waitFor(readOnlyFlash)
+	if !isANSI(r.flashStyle("read-only mode").Fg, ansiYellow) {
+		t.Fatalf("warning flash is not yellow: %q", r.bottomLine())
+	}
 
 	if strings.Contains(r.screen(), "press tab") {
 		t.Fatalf("read-only mode suggests a pane for a disabled action\nscreen:\n%s", r.screen())

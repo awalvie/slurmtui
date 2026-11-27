@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/awalvie/slurmtui/internal/clock"
 	"github.com/awalvie/slurmtui/internal/fakeslurm"
 )
 
@@ -18,17 +17,6 @@ var legendGroups = []struct {
 		{"◷", "pending"}, {"▶", "running"}, {"◼", "completing"}, {"✓", "completed"}}},
 	{"Node suffixes", [][2]string{{"*", "not responding"}, {"~", "powered off"}, {"#", "powering up"}, {"!", "power down pending"},
 		{"%", "powering down"}, {"$", "maintenance"}, {"@", "reboot requested"}, {"^", "reboot issued"}}},
-}
-
-func (r *run) offsetOf(text string) (int, int) {
-	r.t.Helper()
-	for y, line := range strings.Split(r.screen(), "\n") {
-		if at := strings.Index(line, text); at >= 0 {
-			return len([]rune(line[:at])), y
-		}
-	}
-	r.t.Fatalf("screen has no %q\n%s", text, r.screen())
-	return 0, 0
 }
 
 func TestHelpIsACentredPopUp(t *testing.T) {
@@ -129,7 +117,7 @@ func TestHelpNeverCoversTheHeader(t *testing.T) {
 
 func TestLongHelpShowsMoreAndScrolls(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
-	r := startSized(t, clock.NewFake(startTime), 80, 24, []string{"--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
+	r := startSizedOn(t, cluster, 80, 24)
 	r.waitFor("┌ Nodes 1 ")
 
 	r.send("?")

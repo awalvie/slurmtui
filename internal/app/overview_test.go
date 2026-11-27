@@ -263,6 +263,8 @@ func TestFullScreenViewsAndOverviewCommand(t *testing.T) {
 	r.waitUntil("Overview", func() bool { return r.frameTop("Jobs") >= 0 && r.frameTop("Nodes") >= 0 })
 	r.send(":jobs\r:overview\r")
 	r.waitUntil("Overview", func() bool { return r.frameTop("Jobs") >= 0 && r.frameTop("Nodes") >= 0 })
+	r.fullScreen("no", "Nodes")
+	r.fullScreen("j", "Jobs")
 }
 
 func TestDescribeFromAPaneGoesBackWithTheSameFocusAndRow(t *testing.T) {
@@ -270,7 +272,7 @@ func TestDescribeFromAPaneGoesBackWithTheSameFocusAndRow(t *testing.T) {
 	r.send("\tj")
 	r.waitSelected("2")
 
-	for _, key := range []string{"d", "y"} {
+	for _, key := range []string{"d", "y", "\r"} {
 		r.send(key)
 		r.waitUntil("detail view", func() bool { return r.frameTop("Jobs") < 0 })
 		r.send(escKey)

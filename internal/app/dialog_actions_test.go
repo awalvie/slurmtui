@@ -31,17 +31,6 @@ func (r *run) waitButton(label string) {
 	r.waitUntil("focus on button "+label, func() bool { return r.buttonFocused(label) })
 }
 
-func (r *run) styleOf(text string) uv.Style {
-	r.t.Helper()
-	for y, line := range strings.Split(r.screen(), "\n") {
-		if at := strings.Index(line, text); at >= 0 {
-			return r.cellAt(len([]rune(line[:at])), y).Style
-		}
-	}
-	r.t.Fatalf("screen has no %q\n%s", text, r.screen())
-	return uv.Style{}
-}
-
 func TestDialogTitlesAndColoursNameTheType(t *testing.T) {
 	cases := []struct {
 		name   string

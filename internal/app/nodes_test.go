@@ -5,17 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/awalvie/slurmtui/internal/clock"
 	"github.com/awalvie/slurmtui/internal/fakeslurm"
 )
 
 func idle(name string) fakeslurm.Node {
 	return fakeslurm.Node{Name: name, State: []string{"IDLE"}, CPUs: 64, RealMemory: 262144}
-}
-
-func startProvided(t *testing.T, cluster *fakeslurm.Server) *run {
-	t.Helper()
-	return startSizedOn(t, cluster, screenWidth, screenHeight)
 }
 
 func TestNodesViewListsNodeNames(t *testing.T) {
@@ -105,7 +99,7 @@ func TestNodeStateUsesSinfoLabels(t *testing.T) {
 	}
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: nodes})
 
-	r := startSized(t, clock.NewFake(startTime), screenWidth, len(cases)+12, []string{"--url", cluster.URL, "--user", "alice"}, map[string]string{"SLURM_JWT": aliceToken})
+	r := startSizedOn(t, cluster, screenWidth, len(cases)+12)
 	r.waitFor(fmt.Sprintf("┌ Nodes %d ", len(cases)))
 	r.fullScreen("nodes", "Nodes")
 

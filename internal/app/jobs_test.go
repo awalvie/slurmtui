@@ -28,25 +28,6 @@ func runningJob(id int32) fakeslurm.Job {
 	}
 }
 
-func TestJobsCommandShowsJobsAndNodesCommandGoesBack(t *testing.T) {
-	cluster := fakeslurm.Start(t, fakeslurm.Cluster{
-		Name:  "lamp",
-		Nodes: []fakeslurm.Node{idle("n1")},
-		Jobs:  []fakeslurm.Job{runningJob(1234), runningJob(1235)},
-	})
-	r := startProvided(t, cluster)
-	r.waitFor("┌ Nodes 1 ")
-
-	r.fullScreen("jobs", "Jobs")
-
-	r.waitFor("┌ Jobs 2 ")
-	r.rowByName("1234")
-	r.rowByName("1235")
-
-	r.fullScreen("nodes", "Nodes")
-	r.waitFor("┌ Nodes 1 ")
-}
-
 func startOnJobs(t *testing.T, jobs []fakeslurm.Job) (*run, *fakeslurm.Server) {
 	t.Helper()
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: jobs})
@@ -72,15 +53,6 @@ func endedJob(id int32, state ...string) fakeslurm.Job {
 	j.StartTime = fakeslurm.Time(startTime.Add(-10 * time.Minute))
 	j.EndTime = fakeslurm.Time(startTime.Add(-7 * time.Minute))
 	return j
-}
-
-func TestShortViewCommands(t *testing.T) {
-	r, _ := startOnJobs(t, []fakeslurm.Job{runningJob(7)})
-
-	r.fullScreen("no", "Nodes")
-	r.waitFor("┌ Nodes 1 ")
-	r.fullScreen("j", "Jobs")
-	r.waitFor("┌ Jobs 1 ")
 }
 
 func TestJobColumnsFollowSqueue(t *testing.T) {

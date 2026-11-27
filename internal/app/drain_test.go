@@ -1,11 +1,9 @@
 package app_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -40,43 +38,6 @@ func nodeUpdates(cluster *fakeslurm.Server) []fakeslurm.Request {
 func (r *run) waitNodeUpdate(cluster *fakeslurm.Server) fakeslurm.Request {
 	r.t.Helper()
 	return r.waitOneRequest(cluster, "node update", isNodeUpdate)
-}
-
-func requestsWhere(cluster *fakeslurm.Server, keep func(fakeslurm.Request) bool) []fakeslurm.Request {
-	var out []fakeslurm.Request
-	for _, req := range cluster.Requests() {
-		if keep(req) {
-			out = append(out, req)
-		}
-	}
-	return out
-}
-
-func (r *run) waitOneRequest(cluster *fakeslurm.Server, what string, keep func(fakeslurm.Request) bool) fakeslurm.Request {
-	r.t.Helper()
-	r.waitUntil("a "+what+" request", func() bool { return len(requestsWhere(cluster, keep)) > 0 })
-	got := requestsWhere(cluster, keep)
-	if len(got) != 1 {
-		r.t.Fatalf("got %d %s requests, want 1: %+v", len(got), what, got)
-	}
-	return got[0]
-}
-
-func checkBody(t *testing.T, req fakeslurm.Request, wantPath, wantBody string) {
-	t.Helper()
-	if req.Path != wantPath {
-		t.Errorf("path = %s, want %s", req.Path, wantPath)
-	}
-	var got, want any
-	if err := json.Unmarshal(req.Body, &got); err != nil {
-		t.Fatalf("body %q is not JSON: %s", req.Body, err)
-	}
-	if err := json.Unmarshal([]byte(wantBody), &want); err != nil {
-		t.Fatalf("want body %q is not JSON: %s", wantBody, err)
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("body = %s, want %s", req.Body, wantBody)
-	}
 }
 
 func drained(name, reason, by string, at time.Time) fakeslurm.Node {

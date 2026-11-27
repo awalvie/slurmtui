@@ -7,14 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/awalvie/slurmtui/internal/clock"
 	"github.com/awalvie/slurmtui/internal/fakeslurm"
 )
-
-func startSizedOn(t *testing.T, cluster *fakeslurm.Server, width, height int) *run {
-	t.Helper()
-	return startSized(t, clock.NewFake(startTime), width, height, []string{"--url", cluster.URL, "--user", "alice"}, map[string]string{"SLURM_JWT": aliceToken})
-}
 
 func TestSmallTerminalShowsOnlyTheMinimumSize(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}})
