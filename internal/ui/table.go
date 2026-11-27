@@ -384,7 +384,6 @@ type pane struct {
 	right   string
 	rows    []row
 	cursor  int
-	focused bool
 	sortCol string
 	reverse bool
 	empty   string
@@ -400,7 +399,6 @@ func (m Model) paneOf(f frame, t table, focused bool) pane {
 		right:   spec.right(m),
 		rows:    t.rows,
 		cursor:  m.cursorIn(f, t.rows),
-		focused: focused,
 		sortCol: f.sortColumn(),
 		reverse: f.reverse,
 		empty:   f.emptyText(spec),
@@ -449,7 +447,7 @@ func (p pane) render(width, height int) []string {
 	for i := start; i < end; i++ {
 		lines = append(lines, p.rowLine(p.rows[i], l, i == p.cursor, inner))
 	}
-	return box{title: p.title.render(), right: p.right, width: width, height: height, focused: p.focused, lines: lines}.render()
+	return box{title: p.title.render(), right: p.right, width: width, height: height, focused: p.title.focused, lines: lines}.render()
 }
 
 func alignCell(text string, width int, right bool) string {
@@ -460,7 +458,7 @@ func alignCell(text string, width int, right bool) string {
 }
 
 func (p pane) rowLine(r row, l layout, atCursor bool, inner int) string {
-	lit := atCursor && p.focused
+	lit := atCursor && p.title.focused
 	lead := " "
 	switch {
 	case lit:
