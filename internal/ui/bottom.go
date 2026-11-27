@@ -65,7 +65,7 @@ func (m Model) prompt() (string, bool) {
 }
 
 func (m Model) promptLine(mark, text, help string) string {
-	return outlineEdge + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + bottomGap + dimStyle.Render(help)
+	return frameMargin + accentStyle.Bold(true).Render(mark) + textStyle.Render(text) + accentStyle.Render("█") + bottomGap + dimStyle.Render(help)
 }
 
 func (m Model) bottomLine(width int, problem error) string {

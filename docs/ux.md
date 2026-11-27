@@ -206,7 +206,7 @@ The hints show the keys of the focused pane, in this order. They change with the
 - At other times than typing, it holds only the flash and the freshness, at the right: the flash, 2 spaces, the freshness, 1 space. Thus the freshness ends in the column of the right border.
 - Freshness: `● 3s` while the last refresh worked (`●` in `ok`, the age in `dim`). `○ stale 47s` after a failed refresh (`○` in `warn`, the text in `dim`). `○ no data` in `dim` before the first load completes (sofka `sync_indicator`).
 - Flash: info in `ok`, warning in `warn`, error in `bad`. A warning is a key that does nothing in the current place. An error is a refused action or a failed refresh. If the flash does not fit, it is cut with `…`.
-- While the user types a filter: `/` in `accent` bold at column 2, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
+- While the user types a filter: `/` in `accent` bold at column 1 (the border column), so the typed text starts in column 2, the text in `text`, a `█` cursor in `accent`, 2 spaces, then `enter keep · esc undo · filtering Nodes` in `dim`. A command uses `:` in the same form, with `enter run · esc cancel`.
 - While a dialog is open, the header is faded (Dialogs). Thus the bottom line shows the dialog hints at column 2, in the hint form, separated by ` · `. If they do not fit, slurmtui removes hints from the end, but keeps `enter confirm` and `esc keep`.
 
 ### Dialogs

@@ -653,12 +653,12 @@ func TestFilterPromptIsOnTheBottomLine(t *testing.T) {
 	r := startProvided(t, fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}}))
 	r.waitFor("┌ Nodes 1 ")
 	r.send("/n")
-	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "  /n█  enter keep · esc undo") })
-	if c := r.cellAt(4, r.height-1); c.Content != "█" || !isANSI(c.Style.Fg, ansiCyan) {
+	r.waitUntil("the prompt", func() bool { return strings.HasPrefix(r.bottomLine(), " /n█  enter keep · esc undo") })
+	if c := r.cellAt(3, r.height-1); c.Content != "█" || !isANSI(c.Style.Fg, ansiCyan) {
 		t.Fatalf("prompt cursor = %q %v, want a cyan █", c.Content, c.Style)
 	}
 	r.send(escKey + ":jo")
-	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), "  :jo█  enter run · esc cancel") })
+	r.waitUntil("the command prompt", func() bool { return strings.HasPrefix(r.bottomLine(), " :jo█  enter run · esc cancel") })
 	if strings.Contains(r.screen(), "<nodes>") {
 		t.Fatalf("screen still shows crumbs:\n%s", r.screen())
 	}
