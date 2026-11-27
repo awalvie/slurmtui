@@ -7,6 +7,7 @@ Tests drive slurmtui through `app.Main`, as a user does, and check the screen an
 The harness is in `internal/app/harness_test.go`. The fake slurmrestd is in `internal/fakeslurm`. The fake clock is in `internal/clock`.
 
 - Wait for screen text with `waitFor` or `waitUntil`. Never sleep for a fixed time.
+- Wait for the final state before you assert, for example `Nodes 40 ` or `waitSelected`, not the first text that shows. Data can arrive in more than one frame. A test that passes locally can fail on the slower CI runner. CI runs `go test -race -count=5 ./internal/app/` to find these tests.
 - `screen()` gives the screen as one string, `lines()` as one string for each row.
 - Use `advance` to move the fake clock. It waits until slurmtui has armed its two steady timers (refresh and the 1-second footer tick). A new timer changes `steadyTimers`.
 - Find rows with `rowByName` and read cells by column header. `table()` reads the focused pane (the frame whose title name is blue), or the first frame when no frame has the focus. `pane(title)` reads one pane by its title (`Nodes` or `Jobs`), and `rowByNameIn(title, name)` finds a row in it. Each finds the frame by its title (` ┌ Nodes` or ` ┌ Jobs`) and the column header row under it, in column 3. A column is a run of text between gaps of 2 or more blank cells in all rows. The sort arrow is not part of the column name. In the jobs view, `rowByName` and `selected` use the ID column. `waitNames` waits until the rows show in a given order. `columnNames` gives the column names in screen order. `rightAligned` tells if each cell and the header of a column end at the right edge of the column.
@@ -32,6 +33,13 @@ The harness is in `internal/app/harness_test.go`. The fake slurmrestd is in `int
 - To give the fake slurmrestd the same clock as slurmtui, make a `clock.Fake` and pass it to `startWithClock`.
 - `fakeslurm.StartTLS` starts the fake slurmrestd on https with a self-signed certificate. `CertPEM` holds that certificate, for a `caFile`.
 - The fake slurmrestd checks each reply against the OpenAPI spec (`internal/openapi`). A mismatch fails the test and names the field. Fix the fixture, not the check. To send an incorrect reply on purpose, call `ExpectOffSpec` with the field path. See `docs/slurmrestd-v0.0.45.md`.
+
+## Look at the screen
+
+Tests check cells. Before you say that UI work is done, also look at the screen:
+
+- Run slurmtui in tmux on its own server: `tmux -L agents new-session -d -s look -x 120 -y 40 '<command>'`, then `tmux -L agents capture-pane -p -t look`. Use `-L agents` for every tmux command. Never use the user's tmux server, and never set global options. Kill the server after: `tmux -L agents kill-server`.
+- `just screenshots` makes the PNGs in `assets/screenshots/` with VHS. Read them. They show colours, glyph widths and alignment as a real terminal draws them.
 
 ## Integration tests against real slurmrestd
 

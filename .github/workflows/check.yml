@@ -10,6 +10,12 @@ jobs:
       - uses: cachix/install-nix-action@v31
       - run: nix develop --command ./scripts/check
       - run: nix build
+  stress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - run: nix develop --command go test -race -count=5 ./internal/app/
   integration:
     runs-on: ubuntu-latest
     steps:

@@ -16,6 +16,7 @@ A k9s-style terminal UI that shows a Slurm cluster and acts on it through slurmr
 - Before you render or send a Slurm field: `docs/slurm-domain.md` (behaviour) and `docs/slurmrestd-v0.0.45.md` (JSON shapes).
 - Before you change layout, keys, dialogs or config: `docs/ux.md`.
 - Before you change a test or the test harness: `docs/testing.md`.
+- Before you say UI work is done: look at the screen (`docs/testing.md`, Look at the screen).
 - Terms: `GLOSSARY.md`. Decisions: `docs/adr/`.
 - Review rules: `CODING_STANDARDS.md`.
 

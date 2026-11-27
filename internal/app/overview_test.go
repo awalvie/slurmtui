@@ -26,6 +26,9 @@ func startOverviewSized(t *testing.T, width, height int, cluster fakeslurm.Clust
 
 func TestOverviewShowsNodesAboveJobsWithFocusOnNodes(t *testing.T) {
 	r := startOverviewSized(t, screenWidth, screenHeight, fakeslurm.Cluster{Name: "lamp", Nodes: manyNodes(3), Jobs: []fakeslurm.Job{runningJob(1)}})
+	r.waitFor("Nodes 3 ")
+	r.waitFor("Jobs 1 ")
+	r.waitSelected("n01")
 
 	_, nodesBottom := r.frameRows("Nodes")
 	jobsTop, _ := r.frameRows("Jobs")
@@ -34,9 +37,6 @@ func TestOverviewShowsNodesAboveJobsWithFocusOnNodes(t *testing.T) {
 	}
 	if !isANSI(r.cellAt(gridLeft, r.frameTop("Nodes")).Style.Fg, ansiBlue) {
 		t.Fatalf("Nodes pane has no focus")
-	}
-	if r.selected() != "n01" {
-		t.Fatalf("selected = %q, want n01", r.selected())
 	}
 }
 
