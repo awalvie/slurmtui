@@ -8,7 +8,7 @@ A k9s-style terminal UI that shows a Slurm cluster and acts on it through slurmr
 - Recipes: `just --list`. `just check` runs format, vet, no comments, lint and tests; the pre-commit hook and CI run the same script. Enable the hook once with `just hooks`.
 - Build: `nix build`. After a change to `go.mod`, set `vendorHash` in `flake.nix` to `pkgs.lib.fakeHash`, run `nix build`, then use the hash it reports. Nix reuses the old vendor directory while the hash stays the same, so a stale hash builds from stale modules.
 - Run: `just run --url <url>` with `SLURM_JWT` set (the user comes from the token), or `just run --context <name>` with a config file.
-- Real Slurm 26.05 cluster in Docker (3 nodes, slurmrestd on `127.0.0.1:6820`): `just cluster-up`, `just cluster-wait`, `just cluster-seed`, `just cluster-run`, `just cluster-down`. `just cluster-test` runs the integration tests (build tag `integration`) against it. Config is in `dev/compose/`. Real replies recorded from Slurm are in `testdata/slurm-26.05/`. `just openapi-spec` makes the OpenAPI spec there again.
+- Real Slurm 26.05 cluster in Docker (3 nodes, slurmrestd on `127.0.0.1:6820`): `just cluster-up`, `just cluster-wait`, `just cluster-seed`, `just cluster-run`, `just cluster-down`. `just cluster-test` runs the integration tests (build tag `integration`) against it. Config is in `dev/compose/`. Real replies recorded from Slurm 26.05.5 are in `testdata/`. `just openapi-spec` makes the OpenAPI spec there again.
 
 ## Where to look
 

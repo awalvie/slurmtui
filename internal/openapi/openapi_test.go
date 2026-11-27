@@ -33,7 +33,7 @@ func checkFails(t *testing.T, body, want string) {
 const lastUpdate = `"last_update":{"set":true,"infinite":false,"number":1}`
 
 func TestRealSlurmRepliesMatchSpec(t *testing.T) {
-	dir := filepath.Join("..", "..", "testdata", "slurm-26.05")
+	dir := filepath.Join("..", "..", "testdata")
 	index, err := os.ReadFile(filepath.Join(dir, "http-status.tsv"))
 	if err != nil {
 		t.Fatal(err)

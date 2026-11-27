@@ -21,5 +21,5 @@
 
 ## Other places
 
-- `testdata/slurm-26.05/`: real replies recorded from Slurm, and the OpenAPI spec.
+- `testdata/`: real replies recorded from Slurm 26.05.5, and the OpenAPI spec.
 - `dev/compose/`: the Docker Slurm cluster.

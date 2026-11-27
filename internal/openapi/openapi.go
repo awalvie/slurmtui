@@ -16,7 +16,7 @@ import (
 	"sync"
 )
 
-const SlurmSpecFile = "testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json"
+const SlurmSpecFile = "testdata/openapi-slurmctld-v0.0.45.json"
 
 type schema struct {
 	Ref         string             `json:"$ref"`

@@ -49,7 +49,7 @@ func drained(name, reason, by string, at time.Time) fakeslurm.Node {
 
 func recordedReply(t *testing.T, name string) []byte {
 	t.Helper()
-	b, err := os.ReadFile("../../testdata/slurm-26.05/" + name)
+	b, err := os.ReadFile("../../testdata/" + name)
 	if err != nil {
 		t.Fatalf("read recorded reply: %s", err)
 	}

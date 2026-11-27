@@ -65,11 +65,11 @@
                 case "$version" in
                 "slurm 26.05."*) ;;
                 *)
-                  echo "openapi-spec: nixpkgs has '$version', but testdata/slurm-26.05 is for Slurm 26.05" >&2
+                  echo "openapi-spec: nixpkgs has '$version', but testdata is recorded from Slurm 26.05" >&2
                   exit 1
                   ;;
                 esac
-                out="$(git rev-parse --show-toplevel)/testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json"
+                out="$(git rev-parse --show-toplevel)/testdata/openapi-slurmctld-v0.0.45.json"
                 env -i SLURM_CONF=/dev/null ${pkgs.slurm}/bin/slurmrestd -s slurmctld -d v0.0.45 --generate-openapi-spec > "$out.tmp"
                 mv "$out.tmp" "$out"
                 echo "openapi-spec: wrote $out from $version"

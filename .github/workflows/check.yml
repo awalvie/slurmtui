@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v31
-      - run: nix run .#openapi-spec && git diff --exit-code testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json
+      - run: nix run .#openapi-spec && git diff --exit-code testdata/openapi-slurmctld-v0.0.45.json
       - run: nix develop --command just cluster-up
       - run: nix develop --command just cluster-wait
       - run: nix develop --command just cluster-seed

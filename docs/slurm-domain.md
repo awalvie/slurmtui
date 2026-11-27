@@ -63,13 +63,13 @@ The first matching rule wins:
 - `GET /job/1234_5` warns and returns the whole array (rj:178-179). `POST /job/1234_5` is rejected (rj:289-291).
 
 ### Times and scope in the jobs view
-- `nodes` keeps the hostlist after a job ends, for example on a FAILED job (`testdata/slurm-26.05/jobs.json`). Thus the node scope of the Jobs pane matches ended jobs by `nodes`, not by the NODELIST(REASON) text.
+- `nodes` keeps the hostlist after a job ends, for example on a FAILED job (`testdata/jobs.json`). Thus the node scope of the Jobs pane matches ended jobs by `nodes`, not by the NODELIST(REASON) text.
 - TIME_LEFT is `time_limit` minus the elapsed time, for a job that is running, suspended or completing. A value less than 0 shows `0s`. squeue `%L` gives the same value (squeue.1).
-  - `time_limit` with `infinite: true` shows `UNLIMITED`. REST sends `{set:false, infinite:true}` for a job with no limit (`testdata/slurm-26.05/jobs.json`).
+  - `time_limit` with `infinite: true` shows `UNLIMITED`. REST sends `{set:false, infinite:true}` for a job with no limit (`testdata/jobs.json`).
   - `{set:false, infinite:false}` means the partition limit applies. slurmtui reads the partitions each refresh and uses the job's partition: DefaultTime if it is set, else MaxTime. An unset MaxTime is UNLIMITED. A partition that is not in the list is an error that names the job and the partition.
 - slurmtui does not subtract suspended time from the elapsed time. squeue does (`suspend_time`). The difference shows only on a job that was suspended.
 - TIME of a pending job is the wait since `submit_time`. squeue shows `0:00` here. slurmtui shows the wait, in `dim`, because it tells an admin more.
-- `priority` orders pending jobs. A held job has priority 0 (`testdata/slurm-26.05/jobs.json`, job 7), so it sorts last in the pending group.
+- `priority` orders pending jobs. A held job has priority 0 (`testdata/jobs.json`, job 7), so it sorts last in the pending group.
 
 ## 4. state_reason
 - REST gives the string from `job_state_reason_string` (P:2349-2356). The value is **"None"** when no reason is set, which includes most running jobs (job_state_reason.c:53-55). `state_description` holds optional detail.

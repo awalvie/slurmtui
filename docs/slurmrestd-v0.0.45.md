@@ -2,7 +2,7 @@
 
 Source: SchedMD/slurm tag `slurm-26-05-5-1`, `src/plugins/data_parser/v0.0.45/parsers.c` (lines below) and `src/slurmrestd/plugins/openapi/slurmctld/`.
 
-The OpenAPI spec is `testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json`. `just openapi-spec` (flake app `openapi-spec`) makes it again with `slurmrestd -s slurmctld -d v0.0.45 --generate-openapi-spec` from the nixpkgs Slurm in `flake.lock` (26.05.5). The output is the same on each run. The spec from 26.05.6 is different only in `info.version` and `info.x-slurm` (the Slurm version). The v0.0.45 paths and schemas are the same.
+The replies in `testdata/` are recorded from Slurm 26.05.5. The OpenAPI spec is `testdata/openapi-slurmctld-v0.0.45.json`. `just openapi-spec` (flake app `openapi-spec`) makes it again with `slurmrestd -s slurmctld -d v0.0.45 --generate-openapi-spec` from the nixpkgs Slurm in `flake.lock` (26.05.5). The output is the same on each run. The spec from 26.05.6 is different only in `info.version` and `info.x-slurm` (the Slurm version). The v0.0.45 paths and schemas are the same.
 
 ## The spec check
 
@@ -43,7 +43,7 @@ A test that must send an incorrect reply on purpose (for example an unknown node
 
 ## GET /slurm/v0.0.45/partitions?flags=ALL → `partitions[]`
 
-`flags=ALL` includes hidden partitions, because `GET /jobs` includes their jobs. Recorded reply: `testdata/slurm-26.05/partitions.json`.
+`flags=ALL` includes hidden partitions, because `GET /jobs` includes their jobs. Recorded reply: `testdata/partitions.json`.
 
 | field | JSON |
 |---|---|
@@ -83,15 +83,15 @@ A test that must send an incorrect reply on purpose (for example an unknown node
 
 ## GET /slurm/v0.0.45/ping → `pings[]`
 
-- Each item: `hostname`, `responding` (bool), `latency` (int64, microseconds), `primary` (bool), `status` (string). `responding` and `primary` are required (`testdata/slurm-26.05/ping.json`).
-- A bad token does not get HTTP 511 here. The reply is HTTP 200 with empty `errors[]`, and each item has `responding: false` and `status: "Protocol authentication error"` (`testdata/slurm-26.05/ping-bad-token-reply.json`). Thus slurmtui treats a reply with no responding item as a failure.
+- Each item: `hostname`, `responding` (bool), `latency` (int64, microseconds), `primary` (bool), `status` (string). `responding` and `primary` are required (`testdata/ping.json`).
+- A bad token does not get HTTP 511 here. The reply is HTTP 200 with empty `errors[]`, and each item has `responding: false` and `status: "Protocol authentication error"` (`testdata/ping-bad-token-reply.json`). Thus slurmtui treats a reply with no responding item as a failure.
 
 ## Auth
 
 - Headers: `X-SLURM-USER-NAME`, `X-SLURM-USER-TOKEN`.
 - Token: HS256 JWT. slurmctld needs `exp` and `sun` (auth_jwt.c). It checks only `exp < now`, with no leeway, and ignores `iat`.
 - When `sun` is root or SlurmUser and the user header names someone else, the request runs as the header user (auth_jwt.c:409-450).
-- A token that is expired or has a bad signature gets the same reply: HTTP 511 with error 1007 (except on `/ping`, see above) `Protocol authentication error` (`testdata/slurm-26.05/auth-bad-token-reply.json`). An `exp` far in the future is accepted.
+- A token that is expired or has a bad signature gets the same reply: HTTP 511 with error 1007 (except on `/ping`, see above) `Protocol authentication error` (`testdata/auth-bad-token-reply.json`). An `exp` far in the future is accepted.
 - The key file is used as raw bytes, trailing newline included (auth_jwt.c:221).
 
 ## Envelope

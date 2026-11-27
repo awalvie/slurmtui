@@ -213,7 +213,7 @@ Key file rules:
 | `just test` | Tests, without the integration tests |
 | `just run --url <url> --user <user>` | Run from source, with `SLURM_JWT` set |
 | `just build` | `nix build` |
-| `just openapi-spec` | Make `testdata/slurm-26.05/openapi-slurmctld-v0.0.45.json` again from the nixpkgs slurmrestd |
+| `just openapi-spec` | Make `testdata/openapi-slurmctld-v0.0.45.json` again from the nixpkgs slurmrestd |
 
 After a change to `go.mod`, set `vendorHash` in `flake.nix` to `pkgs.lib.fakeHash`, run `nix build`, and use the hash it reports. A stale hash builds from stale modules.
 
