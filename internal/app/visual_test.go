@@ -489,6 +489,34 @@ func TestHintGridShowsKeysOfTheView(t *testing.T) {
 	})
 }
 
+func TestHintGridStartsInOneColumnAndEndsInsideTheFrames(t *testing.T) {
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1"), idle("n2")}})
+	want := len("   Context  "+contextOf(cluster)+"  [read-only]") + 6
+	for _, args := range [][]string{{"--url", cluster.URL}, {"--url", cluster.URL, "--readonly"}} {
+		r := start(t, args, map[string]string{"SLURM_JWT": aliceToken})
+		r.waitFor("┌ Nodes 2 ")
+		if got := hintColumn(t, strings.Split(r.screen(), "\n")[0]); got != want {
+			t.Errorf("with %v the hint grid starts at %d, want %d", args, got, want)
+		}
+	}
+
+	r := startSized(t, clock.NewFake(startTime), 80, 24, []string{"--url", cluster.URL}, map[string]string{"SLURM_JWT": aliceToken})
+	r.waitFor("┌ Nodes 2 ")
+	for _, keys := range []string{"", "/n\r"} {
+		r.send(keys)
+		if keys != "" {
+			r.waitFor("/n")
+		}
+		for y := range 5 {
+			for x := r.width - 1; x < r.width; x++ {
+				if c := r.cellAt(x, y); !isBlank(c) {
+					t.Fatalf("header row %d has %q at column %d, past the frame edge\n%s", y, c.Content, x, r.screen())
+				}
+			}
+		}
+	}
+}
+
 func TestHintGridHidesActionsInReadOnlyMode(t *testing.T) {
 	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{nodeIn("n1", "IDLE", "DRAIN")}, Jobs: []fakeslurm.Job{runningJob(1)}})
 	r := start(t, []string{"--url", cluster.URL, "--user", "alice", "--readonly"}, map[string]string{"SLURM_JWT": aliceToken})
@@ -532,16 +560,16 @@ func TestLogoShowsOnlyWhenItFits(t *testing.T) {
 	contextIn := func(name string) string {
 		return configDir(t, fmt.Sprintf("slurmtui:\n  contexts:\n    %s:\n      url: %s\n      tokenEnv: SLURM_JWT\n", name, cluster.URL))
 	}
-	mid := startSized(t, clock.NewFake(startTime), 100, 30, nil, map[string]string{"SLURM_JWT": aliceToken, "SLURMTUI_CONFIG_DIR": contextIn(strings.Repeat("c", 40))})
+	mid := startSized(t, clock.NewFake(startTime), 100, 30, nil, map[string]string{"SLURM_JWT": aliceToken, "SLURMTUI_CONFIG_DIR": contextIn(strings.Repeat("c", 30))})
 	mid.waitFor("┌ Nodes 1 ")
 	if s := mid.screen(); strings.Contains(s, logoRow) || !strings.Contains(s, "j/k") {
 		t.Fatalf("at 100 columns, want no logo and the hint grid:\n%s", s)
 	}
 
-	narrow := startSized(t, clock.NewFake(startTime), 80, 24, nil, map[string]string{"SLURM_JWT": aliceToken, "SLURMTUI_CONFIG_DIR": contextIn(strings.Repeat("c", 40))})
+	narrow := startSized(t, clock.NewFake(startTime), 80, 24, nil, map[string]string{"SLURM_JWT": aliceToken, "SLURMTUI_CONFIG_DIR": contextIn(strings.Repeat("c", 30))})
 	narrow.waitFor("┌ Nodes 1 ")
 	s := narrow.screen()
-	if strings.Contains(s, "j/k") || !strings.Contains(s, "Context  "+strings.Repeat("c", 40)) || !strings.Contains(s, "Cluster  lamp") {
+	if strings.Contains(s, "j/k") || !strings.Contains(s, "Context  "+strings.Repeat("c", 30)) || !strings.Contains(s, "Cluster  lamp") {
 		t.Fatalf("at 80 columns with a long Context, want the info rows and no hint grid:\n%s", s)
 	}
 }

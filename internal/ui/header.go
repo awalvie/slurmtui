@@ -13,13 +13,15 @@ const (
 	expiresLayout   = "15:04"
 )
 
+const readOnlyMark = "[read-only]"
+
 func (m Model) infoRows() []string {
 	row := func(label, value string) string {
 		return gridEdge + dimStyle.Render(fitLeft(label, infoLabelWidth)) + value
 	}
 	context := row("Context", keyStyle.Render(m.session.Context))
 	if m.session.ReadOnly {
-		context += "  " + warnStyle.Bold(true).Render("[read-only]")
+		context += "  " + warnStyle.Bold(true).Render(readOnlyMark)
 	}
 	user := textStyle.Render(m.session.User)
 	if m.session.User == "root" {
@@ -78,12 +80,13 @@ func widest(lines []string) int {
 func (m Model) header(width int) []string {
 	logo := canLogo()
 	info := m.infoRows()
-	infoWidth := widest(info)
+	widestInfo := m
+	widestInfo.session.ReadOnly = true
 	grid := hintGrid(m.hints(), m.infoRowCount())
 	gridWidth := widest(grid)
-	gridAt := max(gridColumn, infoWidth+gridAfterInfo)
+	gridAt := max(gridColumn, widest(widestInfo.infoRows())+gridAfterInfo)
 	logoWidth := widest(logo) + logoRightMargin
-	showGrid := gridAt+gridWidth <= width
+	showGrid := gridAt+gridWidth <= width-logoRightMargin
 	showLogo := showGrid && gridAt+gridWidth+logoAfterGrid+logoWidth <= width
 	out := make([]string, headerRows)
 	for r := range out {
