@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
+# Kept light: no race detector and no nix build. CI runs both.
 set -euo pipefail
-nix develop --command ./scripts/check
-nix build --no-link
+nix develop --command ./scripts/check --quick

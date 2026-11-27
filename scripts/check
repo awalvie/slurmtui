@@ -9,4 +9,8 @@ if [ -n "$unformatted" ]; then
 fi
 go vet ./...
 golangci-lint run ./...
-./scripts/test
+if [ "${1:-}" = "--quick" ]; then
+  go test -timeout 120s ./...
+else
+  ./scripts/test
+fi
