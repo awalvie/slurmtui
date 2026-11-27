@@ -8,35 +8,6 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-type keyHelp struct {
-	key    string
-	action string
-	writes bool
-}
-
-type helpGroup struct {
-	name string
-	keys []keyHelp
-}
-
-var fixedHelpGroups = []helpGroup{
-	{"Dialogs", []keyHelp{
-		{key: "tab ←/→", action: "Next field or button"},
-		{key: "enter", action: "Push the focused button"},
-		{key: "esc", action: "Keep, change nothing"},
-	}},
-	{"Describe, JSON", []keyHelp{
-		{key: "j/k g/G", action: "Scroll"},
-		{key: "esc", action: "Back"},
-	}},
-	{"Commands", []keyHelp{
-		{key: ":ov", action: "Overview (:overview)"},
-		{key: ":no", action: "Nodes view (:nodes)"},
-		{key: ":j", action: "Jobs view (:jobs)"},
-		{key: ":q", action: "Quit (:quit, ctrl-c)"},
-	}},
-}
-
 type legendEntry struct {
 	glyph string
 	style lipgloss.Style
@@ -94,21 +65,21 @@ const (
 )
 
 func groupBlocks(readOnly bool) [][]string {
-	groups := helpGroupsFromBindings()
+	groups := helpGroups()
 	keyWidth := 0
 	for _, g := range groups {
-		for _, k := range g.keys {
-			keyWidth = max(keyWidth, ansi.StringWidth(k.key)+helpKeyGap)
+		for _, b := range g.bindings {
+			keyWidth = max(keyWidth, ansi.StringWidth(b.shown)+helpKeyGap)
 		}
 	}
 	var blocks [][]string
 	for _, g := range groups {
 		block := []string{helpGroupInset + keyStyle.Render(g.name)}
-		for _, k := range g.keys {
-			if k.writes && readOnly {
+		for _, b := range g.bindings {
+			if b.writes && readOnly {
 				continue
 			}
-			block = append(block, helpRowInset+keyStyle.Render(fitLeft(k.key, keyWidth))+textStyle.Render(k.action))
+			block = append(block, helpRowInset+keyStyle.Render(fitLeft(b.shown, keyWidth))+textStyle.Render(b.help))
 		}
 		blocks = append(blocks, append(block, ""))
 	}
@@ -182,11 +153,6 @@ func (m Model) helpLayout() ([]string, int, int) {
 	lines := helpLines(m.session.ReadOnly, room)
 	rows := max(m.bodyHeight()-2*popupMargin-boxBorders-1, 1)
 	return lines, min(rows, len(lines)), min(widest(lines)+helpRightInset+boxBorders, width-2*popupMargin)
-}
-
-func (m Model) helpKey(key string) Model {
-	lines, rows, _ := m.helpLayout()
-	return m.scrollKey(key, len(lines), rows)
 }
 
 func (m Model) helpBox() []string {

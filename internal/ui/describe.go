@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/awalvie/slurmtui/internal/auth"
 	"github.com/awalvie/slurmtui/internal/slurm"
@@ -25,7 +26,12 @@ func (m Model) scrollTop(total, room int) int {
 	return max(min(m.cursors[m.top().id()].index, total-room), 0)
 }
 
-func (m Model) scrollKey(key string, total, room int) Model {
+func (m Model) scroll(key string) (Model, tea.Cmd) {
+	total, room := len(m.detailLines(m.top())), m.detailRoom()
+	if m.top().kind == helpView {
+		lines, rows, _ := m.helpLayout()
+		total, room = len(lines), rows
+	}
 	top := m.scrollTop(total, room)
 	switch key {
 	case "j", "down":
@@ -36,10 +42,8 @@ func (m Model) scrollKey(key string, total, room int) Model {
 		top = 0
 	case "G":
 		top = total
-	default:
-		return m.unknownKey(key)
 	}
-	return m.setCursor(m.top(), cursorAt{index: max(min(top, total-room), 0)})
+	return m.setCursor(m.top(), cursorAt{index: max(min(top, total-room), 0)}), nil
 }
 
 const boxBorders = 2

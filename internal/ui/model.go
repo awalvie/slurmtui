@@ -32,12 +32,6 @@ const (
 	jsonView     view = "json"
 )
 
-var viewCommands = map[string]view{
-	"nodes": nodesView, "no": nodesView,
-	"jobs": jobsView, "j": jobsView,
-	"overview": overviewView, "ov": overviewView,
-}
-
 type Session struct {
 	Context  string
 	User     string
@@ -192,14 +186,7 @@ func (m Model) key(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case "enter":
 			cmd := *m.command
 			m.command = nil
-			if cmd == "q" || cmd == "quit" {
-				return m, tea.Quit
-			}
-			v, ok := viewCommands[cmd]
-			if !ok {
-				return m.say(flashWarning, ":"+cmd+" is not a command · ? lists the commands"), nil
-			}
-			m = m.show(v)
+			return runCommand(m, cmd)
 		case "esc":
 			m.command = nil
 		case "backspace":

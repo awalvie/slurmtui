@@ -8,8 +8,6 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
-var helpHints = []hint{{"j/k", "scroll"}, {"esc", "back"}}
-
 const popupMargin = 1
 
 func fade(lines []string) []string {
@@ -42,7 +40,7 @@ func (m Model) overlayHints() []hint {
 	case m.dialog != nil:
 		return m.dialog.hints()
 	case m.top().kind == helpView:
-		return helpHints
+		return m.hints()
 	}
 	return nil
 }
