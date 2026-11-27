@@ -20,6 +20,23 @@ func decodeRecord(raw json.RawMessage, into any) error {
 	return fmt.Errorf("%s: %s is not %s", typeErr.Field, value, typeErr.Type)
 }
 
+func decodeEach[W, T any](url string, records []json.RawMessage, name func(W) string, convert func(W, json.RawMessage) (T, error)) ([]T, error) {
+	out := make([]T, 0, len(records))
+	for _, raw := range records {
+		var w W
+		err := decodeRecord(raw, &w)
+		var v T
+		if err == nil {
+			v, err = convert(w, raw)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("GET %s: %s: %w", url, name(w), err)
+		}
+		out = append(out, v)
+	}
+	return out, nil
+}
+
 func valueAt(raw json.RawMessage, path []string) (json.RawMessage, bool) {
 	for _, key := range path {
 		var fields map[string]json.RawMessage

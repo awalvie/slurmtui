@@ -224,20 +224,8 @@ func (c *Client) Nodes(ctx context.Context) (Nodes, error) {
 	if err := c.get(ctx, "/nodes", &wire); err != nil {
 		return Nodes{}, err
 	}
-	url := c.url("/nodes")
-	out := Nodes{Meta: wire.Meta.meta(), Nodes: make([]Node, 0, len(wire.Nodes))}
-	for _, raw := range wire.Nodes {
-		var n wireNode
-		if err := decodeRecord(raw, &n); err != nil {
-			return Nodes{}, fmt.Errorf("GET %s: node %q: %w", url, n.Name, err)
-		}
-		node, err := n.node(raw)
-		if err != nil {
-			return Nodes{}, fmt.Errorf("GET %s: node %q: %w", url, n.Name, err)
-		}
-		out.Nodes = append(out.Nodes, node)
-	}
-	return out, nil
+	nodes, err := decodeEach(c.url("/nodes"), wire.Nodes, func(n wireNode) string { return fmt.Sprintf("node %q", n.Name) }, wireNode.node)
+	return Nodes{Meta: wire.Meta.meta(), Nodes: nodes}, err
 }
 
 type reply interface {

@@ -48,13 +48,9 @@ func (c *Client) Partitions(ctx context.Context) ([]Partition, error) {
 	if err := c.get(ctx, partitionsPath, &wire); err != nil {
 		return nil, err
 	}
-	out := make([]Partition, 0, len(wire.Partitions))
-	for _, raw := range wire.Partitions {
-		var w wirePartition
-		if err := decodeRecord(raw, &w); err != nil {
-			return nil, fmt.Errorf("GET %s: partition %q: %w", c.url(partitionsPath), w.Name, err)
-		}
-		out = append(out, Partition{Name: w.Name, DefaultTime: timeLimitOf(w.Defaults.Time), MaxTime: timeLimitOf(w.Maximums.Time)})
-	}
-	return out, nil
+	return decodeEach(c.url(partitionsPath), wire.Partitions, func(w wirePartition) string { return fmt.Sprintf("partition %q", w.Name) }, wirePartition.partition)
+}
+
+func (w wirePartition) partition(json.RawMessage) (Partition, error) {
+	return Partition{Name: w.Name, DefaultTime: timeLimitOf(w.Defaults.Time), MaxTime: timeLimitOf(w.Maximums.Time)}, nil
 }

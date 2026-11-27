@@ -179,13 +179,14 @@ type wireJobs struct {
 	Jobs []json.RawMessage `json:"jobs"`
 }
 
-func (w wireJob) job() (Job, error) {
+func (w wireJob) job(raw json.RawMessage) (Job, error) {
 	state, err := ParseJobState(w.JobState)
 	if err != nil {
 		return Job{}, err
 	}
 	j := Job{
 		JobID:            w.JobID,
+		Raw:              raw,
 		ArrayTaskString:  w.ArrayTaskString,
 		State:            state,
 		StateReason:      w.StateReason,
@@ -259,19 +260,6 @@ func (c *Client) Jobs(ctx context.Context) (Jobs, error) {
 	if err := c.get(ctx, "/jobs", &wire); err != nil {
 		return Jobs{}, err
 	}
-	url := c.url("/jobs")
-	out := Jobs{Meta: wire.Meta.meta(), Jobs: make([]Job, 0, len(wire.Jobs))}
-	for _, raw := range wire.Jobs {
-		var w wireJob
-		if err := decodeRecord(raw, &w); err != nil {
-			return Jobs{}, fmt.Errorf("GET %s: job %d: %w", url, w.JobID, err)
-		}
-		j, err := w.job()
-		if err != nil {
-			return Jobs{}, fmt.Errorf("GET %s: job %d: %w", url, w.JobID, err)
-		}
-		j.Raw = raw
-		out.Jobs = append(out.Jobs, j)
-	}
-	return out, nil
+	jobs, err := decodeEach(c.url("/jobs"), wire.Jobs, func(w wireJob) string { return fmt.Sprintf("job %d", w.JobID) }, wireJob.job)
+	return Jobs{Meta: wire.Meta.meta(), Jobs: jobs}, err
 }
