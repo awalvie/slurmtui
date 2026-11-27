@@ -1,134 +1,152 @@
-<p align="center"><img src="assets/logo-wordmark.svg" alt="slurmtui" width="480"></p>
+<p align="center">
+  <img src="assets/logo-wordmark.svg" alt="slurmtui" width="420">
+</p>
 
-# slurmtui
+<p align="center">A k9s-style terminal UI for Slurm, over slurmrestd.</p>
 
-A k9s-style terminal UI for Slurm. It shows nodes and jobs, drains and resumes nodes, and cancels jobs.
+<p align="center">
+  <a href="#install">Install</a> &nbsp;|&nbsp;
+  <a href="#quick-start">Quick start</a> &nbsp;|&nbsp;
+  <a href="#keys">Keys</a> &nbsp;|&nbsp;
+  <a href="#config">Config</a> &nbsp;|&nbsp;
+  <a href="#develop">Develop</a>
+</p>
 
-slurmtui connects only to slurmrestd (Slurm 26.05, API v0.0.45). Your computer does not need Slurm, munge or `slurm.conf`.
+<p align="center">
+  <img src="assets/screenshots/overview.png" alt="Nodes and jobs">
+</p>
 
-![Nodes and jobs](assets/screenshots/overview.png)
+<table>
+  <tr>
+    <td width="33%" align="center"><img src="assets/screenshots/drain.png" alt="Drain a node"><br><sub>Drain</sub></td>
+    <td width="33%" align="center"><img src="assets/screenshots/describe.png" alt="Describe a node"><br><sub>Describe</sub></td>
+    <td width="33%" align="center"><img src="assets/screenshots/setup.png" alt="Setup form"><br><sub>Setup</sub></td>
+  </tr>
+</table>
 
 ## Install
 
-Nix:
+Needs slurmrestd with API v0.0.45 (Slurm 26.05).
+
+**Nix**
 
 ```sh
 nix run github:awalvie/slurmtui
 ```
 
-Go 1.26.7 or later:
+**Go**
 
 ```sh
 go install github.com/awalvie/slurmtui/cmd/slurmtui@latest
 ```
 
-Source:
+## Quick start
+
+With no flags, slurmtui opens a setup form and saves a context:
 
 ```sh
-git clone https://github.com/awalvie/slurmtui
-cd slurmtui
-nix build        # or: go build ./cmd/slurmtui
+slurmtui
 ```
-
-## Start
-
-Run `slurmtui`. At the first start, a form asks for the slurmrestd URL, the user and the token source. slurmtui tests the connection and saves a context.
-
-<img src="assets/screenshots/setup.png" alt="Setup form" width="480">
 
 With a token:
 
 ```sh
-export SLURM_JWT=$(ssh login-node scontrol token lifespan=28800 | cut -d= -f2)
-slurmtui --url https://slurm.example:6820 --readonly
+export SLURM_JWT=eyJhbGciOi...
+slurmtui --url https://slurm.example:6820
 ```
 
-With a local test cluster in Docker:
+To get a token, run this on a cluster node:
 
 ```sh
-just cluster-up && just cluster-wait && just cluster-seed && just cluster-run
+scontrol token lifespan=86400   # prints SLURM_JWT=...
 ```
 
-On a production cluster, use `--readonly`. slurmtui then sends only GET requests.
+`lifespan` is in seconds. If you have the cluster JWT key (`jwt_hs256.key`), set `keyFile` and `user` in the config. slurmtui then makes its own tokens.
+
+| Flag | Does |
+|---|---|
+| `--url` | slurmrestd URL |
+| `--context` | Use a context from the config file |
+| `--user` | Slurm user name |
+| `--refresh`, `-r` | Refresh interval in seconds (default 5) |
+| `--readonly` | No drain, resume or cancel |
+| `--write` | Allow actions, also for a read-only context |
 
 ## Keys
 
-The header shows the keys for the current pane. `?` shows all keys.
+`?` shows all keys.
 
-| Key | Action |
+**Move**
+
+| Key | Does |
 |---|---|
-| `tab` | Go to the other pane |
-| `j` `k` `g` `G` | Move |
-| `enter` | Node: show its jobs. Job: describe. |
-| `o` | Show the nodes of a job |
-| `d` / `y` | Describe / raw JSON |
-| `/` | Filter (regex; `!` inverts) |
-| `shift-n` / `shift-s` | Sort by name / state |
-| `D` / `U` | Drain / resume a node |
-| `ctrl-d` | Cancel a job |
-| `ctrl-r` | Refresh |
-| `:nodes` `:jobs` `:ov` | Nodes only, jobs only, both |
-| `esc` | Back |
+| `j` `k` | Up and down |
+| `g` `G` | First and last row |
+| `tab` | Other pane |
+| `esc` | Clear the filter, then the scope, then back |
 | `q` | Quit |
 
-Each action shows a confirm dialog first.
+**Look**
 
-<img src="assets/screenshots/drain.png" alt="Drain dialog" width="640">
+| Key | Does |
+|---|---|
+| `enter` | Jobs on the node, or describe the job |
+| `o` | Nodes of the job |
+| `d` | Describe |
+| `y` | Raw JSON |
+| `/` | Filter (regex, `!` inverts) |
+| `shift-n` `shift-s` | Sort by name or state |
+| `ctrl-r` | Refresh now |
+| `:nodes` `:jobs` `:ov` | Nodes, jobs or both |
+
+**Act**
+
+| Key | Does |
+|---|---|
+| `D` | Drain the node |
+| `U` | Resume the node |
+| `ctrl-d` | Cancel the job |
 
 ## Config
 
-`~/.config/slurmtui/config.yaml`, or `$SLURMTUI_CONFIG_DIR/config.yaml`:
+slurmtui reads `~/.config/slurmtui/config.yaml`. Each context is one cluster.
 
 ```yaml
 slurmtui:
-  refreshRate: 5
+  refreshRate: 5                  # seconds, for all contexts
+  readOnly: false                 # true: no drain, resume or cancel
   contexts:
     prod:
       url: https://slurm.example:6820
-      caFile: ~/.config/slurmtui/prod-ca.pem
+      caFile: prod-ca.pem         # CA certificate for TLS
       user: alice
-      keyFile: keys/prod.key
-      readOnly: true
-    lab:
+      keyFile: keys/prod.key      # JWT key: slurmtui makes the token
+      readOnly: true              # only for this context
+    dev:
       url: http://127.0.0.1:6820
-      tokenEnv: SLURM_JWT_LAB
+      tokenEnv: SLURM_JWT         # environment variable with the token
 ```
 
-With two or more contexts, select one with `--context`. Relative paths start from the config directory. `slurmtui -h` shows the flags.
-
-## Tokens
-
-Each context has one token source:
-
-- `tokenEnv`: an environment variable with a token from `scontrol token`. The header shows its expiry time.
-- `keyFile`: the cluster JWT key (`AuthAltParameters=jwt_key=`). slurmtui signs a new token for each request. Use this when the cluster sets `disable_token_creation`.
-
-The JWT key can sign a token for all users, including root. Keep it like a root password. slurmtui reads it only from a file that you own and that no other user can read.
-
-If all requests fail with a signed token, examine your clock. Slurm refuses the token when your clock is more than 5 minutes slow.
-
-## Security
-
-- Tokens and keys do not show in output, logs or errors.
-- The config file does not store tokens or keys.
-- slurmtui always verifies https certificates. Plain http works only to localhost, for an SSH tunnel: `ssh -L 6820:localhost:6820 login-node`.
-- slurmtui refuses redirects, so a token does not go to a different host.
+Relative paths start from the config directory. Pick a context with `slurmtui --context prod`.
 
 ## Develop
 
 ```sh
-nix develop       # Go, golangci-lint, just
-just check        # format, vet, lint, tests (also pre-commit and CI)
-just hooks        # enable the pre-commit hook
-just cluster-up   # 3-node Slurm in Docker on 127.0.0.1:6820
-just cluster-test # integration tests
-just screenshots  # make assets/screenshots again
+nix develop         # toolchain
+just check          # format, vet, lint, tests
 ```
 
-After a change to `go.mod`, set `vendorHash` in `flake.nix` to `pkgs.lib.fakeHash`, run `nix build`, and use the hash that it shows.
+3-node Slurm cluster in Docker:
 
-Design docs: [docs/](docs/README.md).
+```sh
+just cluster-up
+just cluster-wait
+just cluster-seed
+just cluster-run    # slurmtui against it
+```
+
+Design docs are in [docs/](docs/README.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)
