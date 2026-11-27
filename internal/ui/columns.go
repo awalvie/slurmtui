@@ -93,9 +93,12 @@ func shareFlex(cols []column, natural, widths, flex []int, budget int) []int {
 			}
 		}
 		if full < 0 {
+			left := budget
 			for _, i := range active {
 				widths[i] = max(budget*cols[i].size/weight, cols[i].headerWidth())
+				left -= widths[i]
 			}
+			widths[active[len(active)-1]] += max(left, 0)
 			return widths
 		}
 		widths[full] = natural[full]

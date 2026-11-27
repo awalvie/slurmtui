@@ -162,9 +162,9 @@ The budget that remains after the Fixed and Fit columns goes to the Flex columns
 
 1. If the share by weight of a Flex column holds its widest cell, the column gets that width. The other Flex columns share the remainder. This step repeats until no other column gets its full width.
 2. If all Flex columns got their full width, the surplus goes to them by weight. Thus the table always fills the frame width, and the columns do not pack to the left.
-3. If some Flex columns did not get their full width, they share the remainder by weight. No Flex column is narrower than its header.
+3. If some Flex columns did not get their full width, they share the remainder by weight. The last Flex column also gets the cells that the division by weight leaves. Thus the table fills the frame. No Flex column is narrower than its header.
 
-- A cell that is wider than its column is cut and ends with `…` (U+2026). The cut cell fills the column exactly.
+- A cell that is wider than its column is cut and ends with `…` (U+2026). No space goes before the `…`: `required…`, not `required …`.
 - ID is never cut (squeue form, see Jobs view).
 - If the budget cannot hold each Fixed and Fit column at its width and each Flex column at its header width, slurmtui removes columns in the order that States gives.
 

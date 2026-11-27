@@ -371,6 +371,29 @@ func TestLongCellsAreCutInsideTheFrame(t *testing.T) {
 	}
 }
 
+func TestLastColumnFillsTheFrameAndCutsWithoutASpace(t *testing.T) {
+	long := strings.Repeat("r", 200)
+	odd, even := jobIn(7, "PENDING"), jobIn(8, "PENDING")
+	odd.StateReason, even.StateReason = long, long
+	odd.Name, even.Name = "b"+strings.Repeat(" a", 60), "bb"+strings.Repeat(" a", 60)
+	cluster := fakeslurm.Start(t, fakeslurm.Cluster{Name: "lamp", Nodes: []fakeslurm.Node{idle("n1")}, Jobs: []fakeslurm.Job{odd, even}})
+	for _, size := range []struct{ width, height int }{{160, 50}, {100, 30}, {80, 24}} {
+		r := startSizedOn(t, cluster, size.width, size.height)
+		r.waitFor("┌ Nodes 1 ")
+		r.fullScreen("jobs", "Jobs")
+		r.waitFor("┌ Jobs 2 ")
+		for i, row := range r.table() {
+			y := r.frameTop("Jobs") + 2 + i
+			if c := r.cellAt(r.width-4, y); c.Content != "…" {
+				t.Fatalf("at %dx%d row %s has %q at column %d, want the … of the last column\n%s", size.width, size.height, row.key(), c.Content, r.width-4, r.screen())
+			}
+			if name := row.cells["NAME"]; strings.HasSuffix(name, " …") || !strings.HasSuffix(name, "…") {
+				t.Fatalf("at %dx%d NAME = %q, want a cut with no space before …", size.width, size.height, name)
+			}
+		}
+	}
+}
+
 func (r *run) checkFrameEdges(title string) {
 	r.t.Helper()
 	top := r.frameTop(title)
